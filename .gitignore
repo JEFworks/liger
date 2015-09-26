@@ -1,0 +1,13 @@
+*~
+R/*~
+.DS_Store
+.Rbuildignore
+.Rhistory
+.Rproj.user
+.git
+.Rproj.user
+src/*.o
+src/*.so
+*.Rproj
+*_bak
+.*_bak
