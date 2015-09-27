@@ -1,46 +1,3 @@
-# Rcpp implementation of the GSEA resampling procedure
-# Used by \code{\link{gsea}}
-gseaRandCore <- inline::cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="integer",Seed="integer"),body='
-    std::vector<int> sset=Rcpp::as< std::vector<int> >(Set);
-    std::vector<double> eso=Rcpp::as< std::vector<double> >(Eso);
-    int nsamples=Rcpp::as<int>(Nsamples);
-    std::vector<double> pscores(nsamples);
-    std::vector<double> nscores(nsamples);
-    int nelem=sset.size();
-
-    int seed=Rcpp::as<int>(Seed);
-    srand(seed);
-        
-    for(int i=0;i<nsamples;i++) {
-      // shuffle the set
-      std::random_shuffle(sset.begin(),sset.end());
-      // determine normalizing factors
-      double insum=0; double outsum=0;
-      for(int j=0;j<nelem;j++) {
-         if(sset[j]) {
-            insum+=eso[j];
-         } else {
-            outsum+=eso[j];
-         }
-      }
-      insum/=((double)nelem);
-      outsum=(-1.0)*outsum/((double)nelem);
-      // calculate score
-      double smaxn=0; double smaxp=0; double cs=0;
-      for(int j=0;j<nelem;j++) {
-         if(sset[j]) {
-            cs+=eso[j]/insum;
-         } else {
-            cs+=eso[j]/outsum;
-         }
-         if(cs>smaxp) { smaxp=cs; } else if(cs<smaxn) { smaxn=cs; }
-      }
-      pscores[i]=smaxp; nscores[i]=smaxn;
-    }
-    return Rcpp::List::create(Rcpp::Named( "p" ) = wrap(pscores),
-                              Rcpp::Named( "n" ) = wrap(nscores));
-   ',plugin="Rcpp")
-
 #' Gene set enrichment analysis
 #'
 #' @param values - vector of values with associated gene names
@@ -50,10 +7,10 @@ gseaRandCore <- inline::cxxfunction(signature(Set="integer",Eso="numeric",Nsampl
 #' @param weight - additional weights associated with each value (default: rep(1,length(values)))
 #' @param n.rand - number of randomization iterations (default: 1e4)
 #' @param plot - whether to plot (default: TRUE)
-#' n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=10
+#' n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2
 #'
 #' @examples
-gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=10) {
+gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2) {
 
     # set former options
     decreasing=TRUE
@@ -140,74 +97,10 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 }
 
 
-# gsea randomization core method for multiple sets
-gseaBulkCore <- inline::cxxfunction(signature(SetM="integer",Eso="numeric",Nsamples="integer",Seed="integer"),includes="#include <iostream>",body='
-    arma::mat setm=Rcpp::as<arma::mat>(SetM);
-    arma::vec eso=Rcpp::as< arma::vec >(Eso);
-    int nsamples=Rcpp::as<int>(Nsamples);
-    int seed=Rcpp::as<int>(Seed);
-    srand(seed);
-    int nelem=setm.n_cols;
-    int nsets=setm.n_rows;
-    arma::mat pscores(nsets,nsamples);
-    arma::mat nscores(nsets,nsamples);
-
-    std::vector<int> colord(nelem);
-    for(int i=0;i<nelem;i++) { colord[i]=i; }
-
-    arma::vec innv(nsets);
-    arma::vec outnv(nsets);
-    arma::vec smax(nsets);
-    arma::vec smin(nsets);
-    arma::vec cs(nsets);
-
-    for(int i=0;i<nsamples;i++) {
-      // shuffle the order
-      std::random_shuffle(colord.begin(),colord.end());
-
-      innv.zeros(); outnv.zeros();
-
-      // determine normalizing factors
-      for(int j=0;j<nelem;j++) {
-        int rj=colord[j];
-        for(int k=0;k<nsets;k++) {
-          if(setm(k,rj)) {
-            innv[k]+=eso[rj];
-          } else {
-            outnv[k]+=eso[rj];
-          }
-
-        }
-      }
-      innv*=(1.0)/((double)nelem);
-      outnv*=(-1.0)/((double)nelem);
-      // calculate score
-
-      smin.zeros(); smax.zeros(); cs.zeros();
-      for(int j=0;j<nelem;j++) {
-        int rj=colord[j];
-        // update cumulative
-        for(int k=0;k<nsets;k++) {
-          if(setm(k,rj)) {
-            cs[k]+=eso[rj]/innv[k];
-         } else {
-            cs[k]+=eso[rj]/outnv[k];
-         }
-         if(cs[k]>smax[k]) { smax[k]=cs[k]; } else if(cs[k]<smin[k]) { smin[k]=cs[k]; }
-        }
-      }
-      pscores.col(i)=smax;
-      nscores.col(i)=smin;
-    }
-    return Rcpp::List::create(Rcpp::Named( "p" ) = wrap(pscores),
-                              Rcpp::Named( "n" ) = wrap(nscores));
-   ',plugin="RcppArmadillo")
-
-
 #' Bulk gene set enrichment analysis
 #' # set.list - a list of character vectors corresponding to sets to be tested
 # values must be named, according to names appearing in set.list elements
-bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=10, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
+bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=2, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
 
     # old options
     decreasing=TRUE

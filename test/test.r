@@ -14,7 +14,7 @@ vals <- rnorm(length(universe), 0, 10)
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
 # test obviously enriched set
-gsea(values=vals, geneset=gs)
+gsea(values=vals, geneset=gs, mc.cores=1)
   
 # test obviously not enriched set
 gs <- org.Hs.GO2Symbol.list[[2]]

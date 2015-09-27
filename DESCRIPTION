@@ -15,8 +15,7 @@ Maintainer: Jean Fan <jeanfan@fas.harvard.edu>
 Description: Lightweight Iterative Geneset Enrichment in R
 License: GPL-2
 LazyData: TRUE
-Imports: inline,
-    Rcpp,
-    RcppArmadillo,
+Imports: Rcpp,
     matrixStats
+LinkingTo: Rcpp, RcppArmadillo
 Suggests: parallel
