@@ -1,9 +1,3 @@
-# common.r
-sn <- function(x) {
-    names(x) <- x
-    return(x)
-}
-
 # Rcpp implementation of the GSEA resampling procedure
 # Used by \code{\link{gsea}}
 gseaRandCore <- cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="integer",Seed="integer"),body='
@@ -56,6 +50,7 @@ gseaRandCore <- cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="inte
 #' @param weight - additional weights associated with each value (default: rep(1,length(values)))
 #' @param n.rand - number of randomization iterations (default: 1e4)
 #' @param plot - whether to plot (default: TRUE)
+#' n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=10
 #'
 #' @examples
 gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=10) {
@@ -212,13 +207,13 @@ gseaBulkCore <- cxxfunction(signature(SetM="integer",Eso="numeric",Nsamples="int
                               Rcpp::Named( "n" ) = wrap(nscores));
    ',plugin="RcppArmadillo")
 
-# set.list - a list of character vectors corresponding to sets to be tested
+
+#' Bulk gene set enrichment analysis
+#' # set.list - a list of character vectors corresponding to sets to be tested
 # values must be named, according to names appearing in set.list elements
 bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=10, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
 
     # old options
-    cex=0.9
-    use.Rcpp=TRUE
     decreasing=TRUE
 
     # determine set matrix
@@ -325,7 +320,7 @@ iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e3,1
         if(length(vs)>0) {
             if(verbose) { cat(paste("[",format(nr,scientific=T)," - ",sep=""));  }
             dfr <- bulk.gsea(..., set.list=set.list[vs],n.rand=nr,skip.qval.estimation=T);
-            #dfr <- bulk.gsea(values=values,set.list=set.list[vs], power=power,mc.cores=28,n.rand=nr);
+            #dfr <- bulk.gsea(values=vfalues,set.list=set.list[vs], power=power,mc.cores=28,n.rand=nr);
             df[match(rownames(dfr),rownames(df)),] <- dfr;
             vs <- rownames(df)[df$p.val<=(threshold.eval+1)/(nr+1)];
             if(verbose) { cat(paste(length(vs),"] ",sep=""));  }
@@ -335,162 +330,4 @@ iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e3,1
     if(verbose) { cat("done\n");  }
     # update qvalues
     return(df);
-}
-
-
-
-
-
-
-# move into examples or saved datasets
-
-make.mouse.go.tables <- function() {
-    # make org.Mm.symbol2GO
-    library(org.Mm.eg.db)
-    library(GO.db);
-
-    etr <- as.list(org.Mm.egENSEMBL[mappedkeys(org.Mm.egENSEMBL)])
-    go.valid.codes <- c("IDA","IPI","IMP","IGI","IEP","ISS","TAS")
-
-    # ENSEMBL2GO
-    x <- as.list(org.Mm.egGO2ALLEGS)
-    gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)[names(d) %in% go.valid.codes]])),mc.cores=10)
-    ggs <- do.call(rbind,lapply(sn(names(gl)),function(go) cbind(gene=as.character(gl[[go]]),go=rep(go,length(gl[[go]])))))
-    gl <- tapply(ggs[,2],as.factor(ggs[,1]),I)
-    org.Mm.ENSEMBL2GO <- new.env(parent=globalenv());
-    x <- lapply(names(gl),function(g) assign(g,gl[[g]],envir=org.Mm.ENSEMBL2GO))
-
-    # symbol2GO
-    etr <- as.list(org.Mm.egSYMBOL[mappedkeys(org.Mm.egSYMBOL)])
-    x <- as.list(org.Mm.egGO2ALLEGS)
-    gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)[names(d) %in% go.valid.codes]])),mc.cores=10)
-    ggs <- do.call(rbind,lapply(sn(names(gl)),function(go) cbind(gene=as.character(gl[[go]]),go=rep(go,length(gl[[go]])))))
-    gl <- tapply(ggs[,2],as.factor(ggs[,1]),I)
-    org.Mm.Symbol2GO <- new.env(parent=globalenv());
-    x <- lapply(names(gl),function(g) assign(g,gl[[g]],envir=org.Mm.Symbol2GO))
-    rm(x); gc();
-
-    # GO2ENSEMBL
-    org.Mm.GO2ENSEMBL <- new.env(parent=globalenv());
-    xn <- ls(env=org.Mm.ENSEMBL2GO)
-    xl <- mget(xn,env=org.Mm.ENSEMBL2GO)
-    gel <- tapply(rep(xn,unlist(lapply(xl,length))),unlist(xl),I)
-    x <- lapply(names(gel),function(n) assign(n,gel[[n]],envir=org.Mm.GO2ENSEMBL));
-    rm(xn,xl,x,gel); gc();
-
-    # GO2Symbol
-    org.Mm.GO2Symbol <- new.env(parent=globalenv());
-    xn <- ls(env=org.Mm.Symbol2GO)
-    xl <- mget(xn,env=org.Mm.Symbol2GO)
-    gel <- tapply(rep(xn,unlist(lapply(xl,length))),unlist(xl),I)
-    x <- lapply(names(gel),function(n) assign(n,gel[[n]],envir=org.Mm.GO2Symbol));
-    rm(xn,xl,x,gel); gc();
-
-    #save(org.Mm.ENSEMBL2GO,org.Mm.GO2ENSEMBL,org.Mm.Symbol2GO,org.Mm.GO2Symbol,file="~/keith/me3/org.Mm.GOenvs.RData")
-
-}
-
-make.human.go.tables <- function() {
-    library(org.Hs.eg.db)
-    library(GO.db);
-
-    etr <- as.list(org.Hs.egENSEMBL[mappedkeys(org.Hs.egENSEMBL)])
-    go.valid.codes <- c("IDA","IPI","IMP","IGI","IEP","ISS","TAS")
-
-    # ENSEMBL2GO
-    x <- as.list(org.Hs.egGO2ALLEGS)
-    gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)[names(d) %in% go.valid.codes]])),mc.cores=10)
-    #gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)])),mc.cores=10) # all codes
-    gl <- gl[!(names(gl) %in% get.top.go.terms(level=2))]
-    gl <- gl[unlist(lapply(gl,length))>5]
-
-    ggs <- do.call(rbind,lapply(sn(names(gl)),function(go) cbind(gene=as.character(gl[[go]]),go=rep(go,length(gl[[go]])))))
-    gl <- tapply(ggs[,2],as.factor(ggs[,1]),I)
-    str(ggs)
-
-    org.Hs.ENSEMBL2GO <- new.env(parent=globalenv());
-    x <- lapply(names(gl),function(g) assign(g,gl[[g]],envir=org.Hs.ENSEMBL2GO))
-
-
-    # symbol2GO
-    etr <- as.list(org.Hs.egSYMBOL[mappedkeys(org.Hs.egSYMBOL)])
-    x <- as.list(org.Hs.egGO2ALLEGS)
-    gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)[names(d) %in% go.valid.codes]])),mc.cores=10)
-    #gl <- mclapply(x,function(d) unique(unlist(etr[as.character(d)])),mc.cores=10) # all codes
-    #gl <- gl[!(names(gl) %in% get.top.go.terms(level=2))]
-    #gl <- gl[unlist(lapply(gl,length))>5];
-    ggs <- do.call(rbind,lapply(sn(names(gl)),function(go) cbind(gene=as.character(gl[[go]]),go=rep(go,length(gl[[go]])))))
-    gl <- tapply(ggs[,2],as.factor(ggs[,1]),I)
-    org.Hs.Symbol2GO <- new.env(parent=globalenv());
-    x <- lapply(names(gl),function(g) assign(g,gl[[g]],envir=org.Hs.Symbol2GO))
-    rm(x); gc();
-
-
-    # GO2ENSEMBL
-    org.Hs.GO2ENSEMBL <- new.env(parent=globalenv());
-    xn <- ls(env=org.Hs.ENSEMBL2GO)
-    xl <- mget(xn,env=org.Hs.ENSEMBL2GO)
-    gel <- tapply(rep(xn,unlist(lapply(xl,length))),unlist(xl),I)
-    x <- lapply(names(gel),function(n) assign(n,gel[[n]],envir=org.Hs.GO2ENSEMBL));
-    rm(xn,xl,x,gel); gc();
-
-
-    # GO2Symbol
-    org.Hs.GO2Symbol <- new.env(parent=globalenv());
-    xn <- ls(env=org.Hs.Symbol2GO)
-    xl <- mget(xn,env=org.Hs.Symbol2GO)
-    gel <- tapply(rep(xn,unlist(lapply(xl,length))),unlist(xl),I)
-    x <- lapply(names(gel),function(n) assign(n,gel[[n]],envir=org.Hs.GO2Symbol));
-    rm(xn,xl,x,gel); gc();
-
-    #save(org.Hs.ENSEMBL2GO,org.Hs.GO2ENSEMBL,org.Hs.Symbol2GO,org.Hs.GO2Symbol,file="~/keith/me3/org.Hs.GOenvs.RData")
-
-}
-
-# sample runner
-# need to make org.Hs.GO2Symbol first
-main <- function() {
-
-    # get universe
-    universe <- unique(unlist(as.list(org.Hs.egSYMBOL[mappedkeys(org.Hs.egSYMBOL)])))
-    # get a gene set
-    go <- ls(org.Hs.GO2Symbol)[[1]]
-    gs <- get(go, org.Hs.GO2Symbol)
-    # fake dummy example where everything in gene set is perfectly enriched
-    vals <- rnorm(length(universe), 0, 10)
-    names(vals) <- universe
-    vals[gs] <- rnorm(length(gs), 100, 10)
-    barplot(sort(vals, decreasing=TRUE))
-    # test obviously enriched set
-    gstest <- gs
-    gsea(values=vals, geneset=gstest)
-    # hard to see...too many genes in universe
-
-    # test obviously not enriched set
-    go <- ls(org.Hs.GO2Symbol)[[2]]
-    gs <- get(go, org.Hs.GO2Symbol)
-    gstest <- gs
-    gsea(values=vals, geneset=gstest)
-
-    # universe is huge...make smaller universe example
-    # get universe
-    universe <- unique(unlist(as.list(org.Hs.egSYMBOL[mappedkeys(org.Hs.egSYMBOL)])))[1:1000]
-    # get a gene set
-    gs <- universe[1:10]
-    # fake dummy example where everything in gene set is perfectly enriched
-    vals <- rnorm(length(universe), 0, 10)
-    names(vals) <- universe
-    vals[gs] <- rnorm(length(gs), 100, 10)
-    # add some noise
-    vals[sample(1:length(universe), 100)] <-  rnorm(length(gs), 100, 10)
-    barplot(sort(vals, decreasing=TRUE))
-    gstest <- gs
-    gsea(values=vals, geneset=gstest)
-
-    #pvl <- iterative.bulk.gsea(
-    #    values=vals,
-    #    set.list=gsl)
-
-    bulk.gsea(values, gel[1:10])
-
 }
