@@ -1,5 +1,5 @@
 # test
-require(Rcpp); require(inline); require(RcppArmadillo); require(parallel); require(matrixStats)
+require(Rcpp); require(RcppArmadillo); require(parallel); require(matrixStats)
 set.seed(0)
 
 # load data
@@ -27,4 +27,10 @@ gs <- org.Hs.GO2Symbol.list[[1]]
 gsea(values=vals, geneset=gs)
   
 # bulk test
-bulk.gsea(vals, org.Hs.GO2Symbol.list[1:10])
+ptm <- proc.time()
+bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
+proc.time() - ptm
+# iterative test
+ptm <- proc.time()
+iterative.bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
+proc.time() - ptm

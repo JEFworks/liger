@@ -16,6 +16,6 @@ Description: Lightweight Iterative Geneset Enrichment in R
 License: GPL-2
 LazyData: TRUE
 Imports: Rcpp,
-    matrixStats
+    matrixStats,
+    parallel
 LinkingTo: Rcpp, RcppArmadillo
-Suggests: parallel

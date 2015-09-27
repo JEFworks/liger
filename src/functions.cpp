@@ -2,21 +2,6 @@
 using namespace Rcpp;
 
 // Rcpp implementation of the GSEA resampling procedure
-// Compute the minimum hypergeometric score (mHG). It indicates the
-// probability of the observed density of ones at the beginning of the vector
-// under the assumption that all possible permutations of the list are equally
-// probable.
-// 
-// The optimal size of the beginning is discovered by iteratively increasing
-// the size and chooseing the one with the minimum hypergeometric score.
-// 
-// @param x Binary vector of ones and zeros.
-// @param N Size of the population.
-// @param K Number of successes in the population.
-// @param L Only consider scores for the first L observations.
-// @param X Require at least X ones to get a score less than 1.
-// @param scores A vector of mHG scores.
-// @param tol The tolerance for testing equality of two numbers.
 // [[Rcpp::export]]
 Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples, int seed) {
 
@@ -59,7 +44,7 @@ Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples, int seed) {
 
 
 
-// gsea randomization core method for multiple sets
+// Gsea randomization core method for multiple genesets
 // [[Rcpp::export]]
 Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples, int seed) {
 

@@ -4,6 +4,7 @@ R/*~
 .Rbuildignore
 .Rhistory
 .Rproj.user
+.RData
 .git
 .Rproj.user
 src/*.o

@@ -1,143 +1,211 @@
 #' Gene set enrichment analysis
 #'
-#' @param values - vector of values with associated gene names
-#' @param set - vector of genes in the gene set
-#' @param power - power used in auto-weight calculations
-#' @param rank - do not weigh by values (default: FALSE)
-#' @param weight - additional weights associated with each value (default: rep(1,length(values)))
-#' @param n.rand - number of randomization iterations (default: 1e4)
-#' @param plot - whether to plot (default: TRUE)
-#' n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2
+#' @param values vector of values with associated gene names; values must be named, according to names appearing in set elements
+#' @param set vector of genes in the gene set
+#' @param power an exponent to control the weight of the step (default: 1)
+#' @param rank whether to use ranks as opposed to values (default: FALSE)
+#' @param weight additional weights associated with each value (default: rep(1,length(values)))
+#' @param n.rand number of random permutations used to assess significance (default: 1e4)
+#' @param plot whether to plot (default: TRUE)
+#' @param return.details whether to return extended details (default: FALSE)
+#' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
+#' @param random.seed random seed (default: 1)
+#' @param mc.cores number of cores for parallel processing (default: 2)
 #'
 #' @examples
+#' data("org.Hs.GO2Symbol.list")  
+#' universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
+#' gs <- org.Hs.GO2Symbol.list[[1]]  # get a gene set
+#' vals <- rnorm(length(universe), 0, 10)  # fake dummy example where everything in gene set is perfectly enriched
+#' names(vals) <- universe
+#' vals[gs] <- rnorm(length(gs), 100, 10)
+#' gsea(values=vals, geneset=gs, mc.cores=1) # test obviously enriched set
+#' 
 gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2) {
 
-    # set former options
-    decreasing=TRUE
-    values.lab="values"
-    score.lab="score"
-    main.lab=""
-    cex=0.9
-    body.col="darkblue"
-    randomize.order=TRUE
+    # Binary vector indicating presence in the gene set
+    set <- names(values) %in% geneset
 
-    set <- names(vals) %in% geneset
-
-    # randomize first
-    ro <- sample(1:length(values))
-    values <- values[ro]; set <- set[ro]; weight <- weight[ro]
-
-    # order values
-    vo <- order(values,decreasing=decreasing)
-    values <- values[vo]; set <- set[vo]; weight <- weight[vo];
-    if(rank) { es <- weight } else { es <- (abs(values)^power)*weight; }
-    eso <- es;
-    es[set] <- es[set]/sum(es[set]);
-    es[!set] <- -1*es[!set]/sum(es[!set]);
-    es <- es*length(values);
-    sv <- cumsum(es)
-    sv.p <- max(0,max(sv));
-    sv.n <- min(0,min(sv));
-    p.x.p <- which.max(sv);
-    p.x.n <- which.min(sv);
-
-    # randomizations
-    if(mc.cores>1) {
-        rvll <- mclapply(1:mc.cores,function(i) {
-            gseaRandCore(set,eso,ceiling(n.rand/mc.cores),random.seed+i)
-        }, mc.cores=mc.cores)
-        rvl <- list(p=unlist(lapply(rvll,function(x) x$p)),n=unlist(lapply(rvll,function(x) x$n)));
-        rm(rvll); gc();
+    # Order the vectors by the values
+    vo <- order(values, decreasing = TRUE)
+    values <- values[vo]
+    set <- set[vo]
+    weight <- weight[vo]
+    
+    # Calculate enrichment score
+    if (rank) {
+      # Use the gene weights
+      es <- weight
     } else {
-        rvl <- gseaRandCore(set,eso,n.rand,random.seed)
+      # Use the values raised to a power and weight them
+      es <- (abs(values) ^ power) * weight
     }
+    
+    eso <- es
+    
+    # Evaluate the fraction of hits and misses
+    es[set] <- es[set] / sum(es[set])  # Phit
+    es[!set] <- -1 * es[!set] / sum(es[!set])  # -Pmiss
+    es <- es * length(values)
+    sv <- cumsum(es) 
+    # From original paper: "The ES is the maximum deviation from zero of Phit - Pmiss. For
+    # a randomly distributed S, ES(S) will be relatively small, but if it is
+    # concentrated at the top or bottom of the list, or otherwise nonrandomly
+    # distributed, then ES(S) will be correspondingly high."
+    
+    sv.p <- max(0, max(sv))
+    sv.n <- min(0, min(sv))
+    p.x.p <- which.max(sv)
+    p.x.n <- which.min(sv)
+
+    # Randomization
+    # From original paper: "We assess the significance of an observed
+    # ES by comparing it with the set of scores ESNULL computed with
+    # randomly assigned phenotypes."
+    # Though here, we randomly permute set labels as opposed to recomputing full phenotype recalculation
+    if (mc.cores > 1) {
+        rvll <- parallel::mclapply(1:mc.cores, function(i) {
+            gseaRandCore(set, eso, nsamples = ceiling(n.rand / mc.cores), seed = random.seed + i)
+        }, mc.preschedule=TRUE, mc.cores = mc.cores)
+        rvl <- list(
+          p = unlist(lapply(rvll, function(x) x$p)),
+          n = unlist(lapply(rvll, function(x) x$n))
+        )
+    } else {
+        rvl <- gseaRandCore(set, eso, nsamples = n.rand, seed = random.seed)
+    }
+    # From original paper: "Estimate nominal P value for S from ESNULL by using the
+    # positive or negative portion of the distribution corresponding to
+    # the sign of the observed ES(S)."
     p.v.p <- (sum(rvl$p >= sv.p)+1)/(length(rvl$p+1))
     p.v.n <- (sum(rvl$n <= sv.n)+1)/(length(rvl$n+1))
+    p.x <- ifelse(p.v.p < p.v.n, p.x.p, p.x.n)  # index of edge value
+    p.v <- ifelse(p.v.p < p.v.n, p.v.p, p.v.n)  # P-value
 
-    p.x <- ifelse(p.v.p<p.v.n,p.x.p,p.x.n)
-    p.v <- ifelse(p.v.p<p.v.n,p.v.p,p.v.n)
-
-    if(p.v.p<p.v.n) {
-        q.thr <- quantile(rvl$p,p=(1-quantile.threshold))
+    if(p.v.p < p.v.n) {
+        q.thr <- quantile(rvl$p, p = (1-quantile.threshold))
     } else {
-        q.thr <- quantile(rvl$n,p=quantile.threshold)
+        q.thr <- quantile(rvl$n, p = quantile.threshold)
     }
 
     if(plot) {
-        l <- layout(matrix(c(1,2,3),3,1,byrow=T),c(1,1,1),c(1.4,0.3,0.9),FALSE);
-        par(mar = c(0.1,3.5,ifelse(main.lab=="",0.5,3.5),0.5), mgp = c(2,0.65,0), cex = cex)
-        plot(c(1:length(sv)),sv,type='l',ylab=score.lab,xaxt="n",xlab="",main=main.lab,xaxs="i",xlim=c(1,length(sv)),col=body.col)
-        segments(p.x,0,p.x,sv[p.x],col=2,lty=2)
-        segments(0,sv[p.x],p.x,sv[p.x],col=2,lty=2)
+        l <- layout(matrix(c(1,2,3),3, 1, byrow=T), c(1,1,1), c(1.4,0.3,0.9), FALSE)
+        par(mar = c(0.1,3.5, ifelse(main.lab=="",0.5,3.5), 0.5), mgp = c(2,0.65,0), cex = 0.9)
+        # Plot scores along gene list rank
+        plot( c(1:length(sv)), sv, type = 'l', 
+              ylab = "score", xaxt="n", xlab="", main="", xaxs="i", 
+              xlim=c(1,length(sv)), col="darkblue")
+        # Plot the maximum deviation from zero ie. the enrichment score
+        segments(p.x, 0, p.x, sv[p.x], col=2, lty=2) 
+        segments(0, sv[p.x], p.x, sv[p.x], col=2, lty=2)
 
+        # Plot quantile thresholds
         qv.p <- quantile(rvl$p,p=1-10^(-1*seq(1,round(log10(length(rvl$p))))))
         qv.n <- -1*quantile(-1*rvl$n,p=1-10^(-1*seq(1,round(log10(length(rvl$n))))))
         abline(h=c(qv.p,qv.n),lty=3,col=8)
         abline(h=0,lty=2,col=8)
+        
+        # Plot P-value
         xpos <- "right"; if(p.x>round(length(sv)/2)) {  xpos <- "left"; }
-        legend(x=ifelse(sv[round(length(sv)/2)]>sv[p.x],paste("bottom",xpos,sep=""),paste("top",xpos,sep="")),legend=paste("P-value <",format(p.v,digits=3)),bty="n")
+        legend( x = ifelse( sv[round(length(sv)/2)]>sv[p.x], paste("bottom",xpos,sep=""), paste("top",xpos,sep="")), 
+                bty="n",
+                legend = paste("P-value <", format(p.v, digits=3))
+                )
+        
+        # Plot gene set
         par(mar = c(0.1,3.5,0.1,0.5))
-        mset <- set; mset[!set] <- NA;
-        plot(mset,xaxt="n",ylim=c(0,1),xlab="",ylab="",xaxs="i",yaxt="n",type='h',col="blue")
-        abline(v=p.x,col=2,lty=2)
+        mset <- set
+        mset[!set] <- NA
+        plot( mset, xaxt="n", ylim=c(0,1), xlab="", ylab="", xaxs="i", yaxt="n", type='h', col="blue")
+        abline( v = p.x, col=2, lty=2)
         box()
+        
+        # Plot values 
         par(mar = c(0.5,3.5,0.1,0.5))
-        plot(values,ylab=values.lab,xaxs="i",type='h',xaxt="n",col=body.col)
-        legend(x=ifelse(decreasing,"topright","topleft"),bty="n",legend=paste("edge value = ",format(values[p.x],digits=2)))
-        abline(v=p.x,col=2,lty=2)
+        plot( values, ylab="values", xaxs="i", type='h', xaxt="n", col="darkblue")
+        legend( x = ifelse(decreasing, "topright", "topleft"),
+                bty="n", 
+                legend=paste("edge value = ", format(values[p.x], digits=2))
+                )
+        abline( v = p.x, col=2, lty=2)
         box()
     }
+    
     if(return.details) {
-        rv <- c(p.val=p.v,edge.score=as.numeric(sv[p.x]),edge.value=as.numeric(values[p.x]),scaled.score=as.numeric(sv[p.x]/q.thr));
-        #if(pareto.estimate) { rv <- c(rv,pareto.pval=pareto.tail.estimate(abs(rvl),as.numeric(abs(sv[p.x])))) }
-        return(rv);
+        rv <- c(p.val = p.v, edge.score = as.numeric(sv[p.x]), edge.value = as.numeric(values[p.x]), scaled.score = as.numeric(sv[p.x]/q.thr))
+        #if(pareto.estimate) { rv <- c(rv, pareto.pval = pareto.tail.estimate(abs(rvl), as.numeric(abs(sv[p.x])))) }
+        return(rv)
     } else {
-        return(p.v);
+        return(p.v)
     }
 }
 
 
 #' Bulk gene set enrichment analysis
-#' # set.list - a list of character vectors corresponding to sets to be tested
-# values must be named, according to names appearing in set.list elements
+#'
+#' @param values vector of values with associated gene names; values must be named, according to names appearing in set.list elements
+#' @param set.list list of gene sets
+#' @param power an exponent to control the weight of the step (default: 1)
+#' @param rank whether to use ranks as opposed to values (default: FALSE)
+#' @param weight additional weights associated with each value (default: rep(1,length(values)))
+#' @param n.rand number of random permutations used to assess significance (default: 1e4)
+#' @param plot whether to plot (default: TRUE)
+#' @param return.details whether to return extended details (default: FALSE)
+#' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
+#' @param random.seed random seed (default: 1)
+#' @param mc.cores number of cores for parallel processing (default: 2)
+#' @param skip.qval.estimation whether to skip q-value estimation for multiple testing (default: FALSE)
+#'
+#' @examples
+#' data("org.Hs.GO2Symbol.list")  
+#' universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
+#' gs.list <- org.Hs.GO2Symbol.list # get gene sets
+#' vals <- rnorm(length(universe), 0, 10)  
+#' names(vals) <- universe
+#' vals[gs] <- rnorm(length(gs), 100, 10)
+#' bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1) 
+#' 
 bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=2, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
 
-    # old options
-    decreasing=TRUE
+    # Determine set matrix
+    setm <- do.call(rbind, parallel::mclapply(set.list, function(set) names(values) %in% set, mc.cores=mc.cores))
+    # Only bother testing if more than 2 genes present
+    setm <- setm[rowSums(setm) > 2, , drop = FALSE]
+    
+    # Order the vectors by the values
+    vo <- order(values, decreasing=TRUE)
+    values <- values[vo]
+    setm <- setm[, vo, drop=FALSE]
+    weight <- weight[vo]
+    if(rank) { 
+      es <- weight 
+    } else { 
+      es <- (abs(values)^power) * weight
+    }
+    
+    eso <- es
 
-    # determine set matrix
-    setm <- do.call(rbind, mclapply(set.list, function(set) names(values) %in% set, mc.cores=mc.cores))
-    # only bother testing if more than 2 genes present
-    setm <- setm[rowSums(setm)>2,,drop=F]
-
-    # randomize first
-    ro <- sample(seq_along(values))
-    values <- values[ro]
-    setm <- setm[, ro, drop=F]
-    weight <- weight[ro]
-
-    # order
-    vo <- order(values,decreasing=decreasing)
-    values <- values[vo]; setm <- setm[,vo,drop=F]; weight <- weight[vo];
-    if(rank) { es <- weight } else { es <- (abs(values)^power)*weight; }
-    eso <- es;
-
-    ies <- t(t(setm)*es); ies <- ies/rowSums(ies);
-    ies[is.nan(ies)] <- 0; # when values null out membership
-    pes <- t(t(!setm)*es); pes <- pes/rowSums(pes);
-    pes[is.nan(pes)] <- 0;
-    esm <- ies-pes;
-    svm <- t(apply(esm,1,cumsum))*length(values);
-    svm.maxp <- apply(svm,1,function(x) x[which.max(x)]); svm.maxp[svm.maxp<0] <- 0;
-    svm.maxn <- apply(svm,1,function(x) x[which.min(x)]); svm.maxn[svm.maxn>0] <- 0;
-    p.xmp <- apply(svm,1,which.max)
-    p.xmn <- apply(svm,1,which.min)
-
-    # randomizations
+    ies <- t(t(setm)*es)
+    ies <- ies/rowSums(ies)
+    ies[is.nan(ies)] <- 0  # when values null out membership
+    pes <- t(t(!setm)*es)
+    pes <- pes/rowSums(pes)
+    pes[is.nan(pes)] <- 0
+    esm <- ies-pes
+    svm <- t(apply(esm,1,cumsum))*length(values)
+    
+    svm.maxp <- apply(svm,1,function(x) x[which.max(x)])
+    svm.maxp[svm.maxp<0] <- 0
+    svm.maxn <- apply(svm,1,function(x) x[which.min(x)])
+    svm.maxn[svm.maxn>0] <- 0
+    p.xmp <- apply(svm, 1, which.max)
+    p.xmn <- apply(svm, 1, which.min)
+    
+    # Randomization
     if(mc.cores>1) {
-        rvlp <- mclapply(1:mc.cores,function(i) {
+        rvlp <- parallel::mclapply(1:mc.cores,function(i) {
             gseaBulkCore(setm,eso,ceiling(n.rand/mc.cores),i)
-        },mc.preschedule=T,mc.cores=mc.cores)
+        }, mc.preschedule=TRUE, mc.cores=mc.cores)
         rvl <- list(p=do.call(cbind,lapply(rvlp,function(x) x$p)),
                     n=do.call(cbind,lapply(rvlp,function(x) x$n)));
         rm(rvlp); gc();
@@ -145,10 +213,10 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
         rvl <- gseaBulkCore(setm,eso,n.rand,1)
     }
 
-    # raw p-values
+    # Raw p-values
     p.v.p <- (rowSums(rvl$p - svm.maxp >= 0) +1)/(ncol(rvl$p)+1)
     p.v.n <- (rowSums(rvl$n - svm.maxn <= 0) +1)/(ncol(rvl$n)+1)
-    # upper quantiles for scaling thresholds
+    # Upper quantiles for scaling thresholds
     q.thr.p <- rowQuantiles(rvl$p,probs=(1-quantile.threshold),drop=T)
     q.thr.n <- rowQuantiles(rvl$n,probs=quantile.threshold,drop=T)
 
@@ -157,7 +225,7 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
     x.val <- values[ifelse(p.v.p<p.v.n,p.xmp,p.xmn)]
 
     if(!skip.qval.estimation) {
-        # sign-aware mean-scaling
+        # Sign-aware mean-scaling
         s.pm <- apply(rvl$p,1,mean)
         s.nm <- apply(rvl$n,1,mean)
         s.pm[is.na(s.pm)] <- 0; s.nm[is.na(s.nm)] <- 0;
@@ -165,7 +233,7 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
         s.pss <- ecdf(as.numeric(rvl$p/s.pm))
         s.nss <- ecdf(as.numeric(rvl$n/s.nm))
 
-        # scale the actual Smax
+        # Scale the actual Smax
         s.svm.maxp <- svm.maxp/s.pm;
         s.svm.maxn <- svm.maxn/s.nm;
 
@@ -181,12 +249,12 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
 
         q.val <- ifelse(q.v.p<q.v.n,q.v.p,q.v.n)
     } else {
-        q.val <- p.adjust(p.val);
+        q.val <- p.adjust(p.val)
     }
 
-    # p-value, q-value table
+    # P-value, Q-value table
     df <- data.frame(p.val=p.val,q.val=q.val,sscore=sscore,edge=x.val)
-    rownames(df) <- rownames(setm);
+    rownames(df) <- rownames(setm)
 
     if(return.details) {
         ddf <- data.frame(svm.maxp=svm.maxp,svm.maxn=svm.maxn,p.xmp=p.xmp,p.xmn=p.xmn,p.v.p=p.v.p,p.v.n=p.v.n,q.thr.p=q.thr.p,q.thr.n=q.thr.n,q.v.p=q.v.p,q.v.n=q.v.n)
@@ -197,26 +265,49 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
     }
 }
 
-# calls bulk.gsea
-iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e3,1e4,1e5,1e6),verbose=TRUE) {
+
+#' Iterative bulk gene set enrichment analysis
+#'
+#' @param set.listlist of gene sets
+#' @param threshold.eval threshold for applying additional permutations (default: 10)
+#' @param n.rand list of number of random permutations used to assess significance (default: c(1e2,1e3,1e4))
+#' @param verbose whether to use high verbosity level (default: TRUE)
+#' @param ... arguments to be passed to \code{\link{bulk.gsea}}
+#'
+#' @examples
+#' data("org.Hs.GO2Symbol.list")  
+#' universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
+#' gs.list <- org.Hs.GO2Symbol.list # get gene sets
+#' vals <- rnorm(length(universe), 0, 10)  
+#' names(vals) <- universe
+#' vals[gs] <- rnorm(length(gs), 100, 10)
+#' iterative.bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1) 
+#' 
+iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e2,1e3,1e4), verbose=TRUE) {
+  
     # initial screen
-    if(verbose) { cat(paste("initial: [",format(n.rand[1],scientific=T)," - ",sep=""));  }
-    df <- bulk.gsea(...,set.list=set.list, n.rand=n.rand[1]);
-    #df <- bulk.gsea(values=values,set.list=set.list, power=power,mc.cores=28,n.rand=n.rand[1]);
-    vs <- rownames(df)[df$p.val<=(threshold.eval+1)/(n.rand[1]+1)];
+    if(verbose) { cat(paste("initial: [",format(n.rand[1],scientific=T)," - ",sep="")) }
+  
+    df <- bulk.gsea(..., set.list = set.list, n.rand=n.rand[1])
+    vs <- rownames(df)[df$p.val<=(threshold.eval+1)/(n.rand[1]+1)]
     if(verbose) { cat(paste(length(vs),"] ",sep=""));  }
+    
     for(nr in n.rand[-1]) {
         if(length(vs)>0) {
-            if(verbose) { cat(paste("[",format(nr,scientific=T)," - ",sep=""));  }
-            dfr <- bulk.gsea(..., set.list=set.list[vs],n.rand=nr,skip.qval.estimation=T);
-            #dfr <- bulk.gsea(values=vfalues,set.list=set.list[vs], power=power,mc.cores=28,n.rand=nr);
-            df[match(rownames(dfr),rownames(df)),] <- dfr;
-            vs <- rownames(df)[df$p.val<=(threshold.eval+1)/(nr+1)];
-            if(verbose) { cat(paste(length(vs),"] ",sep=""));  }
+          
+            if(verbose) { cat(paste("[",format(nr,scientific=T)," - ",sep=""))  }
+          
+            dfr <- bulk.gsea(..., set.list = set.list[vs], n.rand=nr, skip.qval.estimation=TRUE)
+            df[match(rownames(dfr),rownames(df)),] <- dfr
+            vs <- rownames(df)[df$p.val<=(threshold.eval+1)/(nr+1)]
+            
+            if(verbose) { cat(paste(length(vs),"] ",sep=""))  }
         }
     }
+    
     df$q.val <- p.adjust(df$p.val,method="BH")
-    if(verbose) { cat("done\n");  }
-    # update qvalues
-    return(df);
+    
+    if(verbose) { cat("done\n")  }
+    
+    return(df)
 }
