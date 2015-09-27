@@ -19,3 +19,5 @@ Imports: Rcpp,
     matrixStats,
     parallel
 LinkingTo: Rcpp, RcppArmadillo
+Suggests: knitr
+VignetteBuilder: knitr

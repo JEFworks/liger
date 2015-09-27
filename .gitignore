@@ -6,9 +6,9 @@ R/*~
 .Rproj.user
 .RData
 .git
-.Rproj.user
 src/*.o
 src/*.so
 *.Rproj
 *_bak
 .*_bak
+inst/doc

@@ -1,8 +1,8 @@
 # test
-require(Rcpp); require(RcppArmadillo); require(parallel); require(matrixStats)
+library(liger)
 set.seed(0)
 
-# load data
+# load gene set
 data("org.Hs.GO2Symbol.list")  
 
 # get universe

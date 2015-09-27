@@ -90,7 +90,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 
     if(plot) {
         l <- layout(matrix(c(1,2,3),3, 1, byrow=T), c(1,1,1), c(1.4,0.3,0.9), FALSE)
-        par(mar = c(0.1,3.5, ifelse(main.lab=="",0.5,3.5), 0.5), mgp = c(2,0.65,0), cex = 0.9)
+        par(mar = c(0.1,3.5, 0.5, 0.5), mgp = c(2,0.65,0), cex = 0.9)
         # Plot scores along gene list rank
         plot( c(1:length(sv)), sv, type = 'l', 
               ylab = "score", xaxt="n", xlab="", main="", xaxs="i", 
@@ -123,7 +123,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
         # Plot values 
         par(mar = c(0.5,3.5,0.1,0.5))
         plot( values, ylab="values", xaxs="i", type='h', xaxt="n", col="darkblue")
-        legend( x = ifelse(decreasing, "topright", "topleft"),
+        legend( x = "topright",
                 bty="n", 
                 legend=paste("edge value = ", format(values[p.x], digits=2))
                 )
@@ -217,8 +217,8 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
     p.v.p <- (rowSums(rvl$p - svm.maxp >= 0) +1)/(ncol(rvl$p)+1)
     p.v.n <- (rowSums(rvl$n - svm.maxn <= 0) +1)/(ncol(rvl$n)+1)
     # Upper quantiles for scaling thresholds
-    q.thr.p <- rowQuantiles(rvl$p,probs=(1-quantile.threshold),drop=T)
-    q.thr.n <- rowQuantiles(rvl$n,probs=quantile.threshold,drop=T)
+    q.thr.p <- matrixStats::rowQuantiles(rvl$p,probs=(1-quantile.threshold),drop=T)
+    q.thr.n <- matrixStats::rowQuantiles(rvl$n,probs=quantile.threshold,drop=T)
 
     p.val <- ifelse(p.v.p<p.v.n,p.v.p,p.v.n)
     sscore <- ifelse(p.v.p<p.v.n,svm.maxp/q.thr.p,-1*svm.maxn/q.thr.n)
