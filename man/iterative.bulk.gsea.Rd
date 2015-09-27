@@ -10,13 +10,13 @@ iterative.bulk.gsea(..., set.list, threshold.eval = 10, n.rand = c(100,
 \arguments{
 \item{...}{arguments to be passed to \code{\link{bulk.gsea}}}
 
+\item{set.list}{list of gene sets}
+
 \item{threshold.eval}{threshold for applying additional permutations (default: 10)}
 
 \item{n.rand}{list of number of random permutations used to assess significance (default: c(1e2,1e3,1e4))}
 
 \item{verbose}{whether to use high verbosity level (default: TRUE)}
-
-\item{set.listlist}{of gene sets}
 }
 \description{
 Iterative bulk gene set enrichment analysis
@@ -24,10 +24,11 @@ Iterative bulk gene set enrichment analysis
 \examples{
 data("org.Hs.GO2Symbol.list")
 universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
-gs.list <- org.Hs.GO2Symbol.list # get gene sets
-vals <- rnorm(length(universe), 0, 10)
+gs <- org.Hs.GO2Symbol.list[[1]]  # get a gene set
+vals <- rnorm(length(universe), 0, 10)  # simulate values
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
+gs.list <- org.Hs.GO2Symbol.list # get gene sets
 iterative.bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1)
 }
 

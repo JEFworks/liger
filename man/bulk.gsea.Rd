@@ -40,10 +40,11 @@ Bulk gene set enrichment analysis
 \examples{
 data("org.Hs.GO2Symbol.list")
 universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
-gs.list <- org.Hs.GO2Symbol.list # get gene sets
-vals <- rnorm(length(universe), 0, 10)
+gs <- org.Hs.GO2Symbol.list[[1]]  # get a gene set
+vals <- rnorm(length(universe), 0, 10)  # simulate values
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
+gs.list <- org.Hs.GO2Symbol.list # get gene sets
 bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1)
 }
 
