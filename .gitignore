@@ -12,3 +12,4 @@ src/*.so
 *_bak
 .*_bak
 inst/doc
+test/*
