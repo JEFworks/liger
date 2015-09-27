@@ -1,6 +1,6 @@
 # Rcpp implementation of the GSEA resampling procedure
 # Used by \code{\link{gsea}}
-gseaRandCore <- cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="integer",Seed="integer"),body='
+gseaRandCore <- inline::cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="integer",Seed="integer"),body='
     std::vector<int> sset=Rcpp::as< std::vector<int> >(Set);
     std::vector<double> eso=Rcpp::as< std::vector<double> >(Eso);
     int nsamples=Rcpp::as<int>(Nsamples);
@@ -10,7 +10,7 @@ gseaRandCore <- cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="inte
 
     int seed=Rcpp::as<int>(Seed);
     srand(seed);
-
+        
     for(int i=0;i<nsamples;i++) {
       // shuffle the set
       std::random_shuffle(sset.begin(),sset.end());
@@ -56,13 +56,13 @@ gseaRandCore <- cxxfunction(signature(Set="integer",Eso="numeric",Nsamples="inte
 gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=10) {
 
     # set former options
-    decreasing=T
+    decreasing=TRUE
     values.lab="values"
     score.lab="score"
     main.lab=""
     cex=0.9
     body.col="darkblue"
-    randomize.order=T
+    randomize.order=TRUE
 
     set <- names(vals) %in% geneset
 
@@ -88,7 +88,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
     if(mc.cores>1) {
         rvll <- mclapply(1:mc.cores,function(i) {
             gseaRandCore(set,eso,ceiling(n.rand/mc.cores),random.seed+i)
-        },mc.preschedule=T,mc.cores=mc.cores)
+        }, mc.cores=mc.cores)
         rvl <- list(p=unlist(lapply(rvll,function(x) x$p)),n=unlist(lapply(rvll,function(x) x$n)));
         rm(rvll); gc();
     } else {
@@ -120,11 +120,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
         xpos <- "right"; if(p.x>round(length(sv)/2)) {  xpos <- "left"; }
         legend(x=ifelse(sv[round(length(sv)/2)]>sv[p.x],paste("bottom",xpos,sep=""),paste("top",xpos,sep="")),legend=paste("P-value <",format(p.v,digits=3)),bty="n")
         par(mar = c(0.1,3.5,0.1,0.5))
-        #plot(set,xaxt="n",xlab="",ylab="",xaxs="i",yaxt="n",type='h',col=body.col)
         mset <- set; mset[!set] <- NA;
-        #den <- densum(which(set),from=0,to=length(set))$y[which(set)]; den <- round((den)*255/max(den)+1);
-        #plot(mset,xaxt="n",ylim=c(0,1),xlab="",ylab="",xaxs="i",yaxt="n",type='h',col=colorRampPalette(brewer.pal(9, "Blues")[-(1:2)])(256)[den])
-        #plot(mset,xaxt="n",ylim=c(0,1),xlab="",ylab="",xaxs="i",yaxt="n",type='h',col=densCols(which(set),nbin=256,colramp=colorRampPalette(brewer.pal(9, "Blues")[-(1:2)])))
         plot(mset,xaxt="n",ylim=c(0,1),xlab="",ylab="",xaxs="i",yaxt="n",type='h',col="blue")
         abline(v=p.x,col=2,lty=2)
         box()
@@ -145,7 +141,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 
 
 # gsea randomization core method for multiple sets
-gseaBulkCore <- cxxfunction(signature(SetM="integer",Eso="numeric",Nsamples="integer",Seed="integer"),includes="#include <iostream>",body='
+gseaBulkCore <- inline::cxxfunction(signature(SetM="integer",Eso="numeric",Nsamples="integer",Seed="integer"),includes="#include <iostream>",body='
     arma::mat setm=Rcpp::as<arma::mat>(SetM);
     arma::vec eso=Rcpp::as< arma::vec >(Eso);
     int nsamples=Rcpp::as<int>(Nsamples);

@@ -1,4 +1,5 @@
 # test
+require(Rcpp); require(inline); require(RcppArmadillo); require(parallel); require(matrixStats)
 set.seed(0)
 
 # load data

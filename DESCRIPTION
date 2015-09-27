@@ -7,10 +7,10 @@ Author: Jean Fan [aut, cre],
     Peter Kharchenko [aut]
 Authors@R: c(
     person("Jean", "Fan", role = c("aut", "cre"),
-	         email = "jeanfan@fas.harvard.edu")
-	         ),
+	         email = "jeanfan@fas.harvard.edu"),
     person("Peter", "Kharchenko", role = "aut",
 		     email = "Peter_Kharchenko@hms.harvard.edu")
+		     )
 Maintainer: Jean Fan <jeanfan@fas.harvard.edu>
 Description: Lightweight Iterative Geneset Enrichment in R
 License: GPL-2
