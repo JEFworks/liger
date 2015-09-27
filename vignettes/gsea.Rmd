@@ -2,14 +2,14 @@
 title: "Gene Set Enrichment Analysis with LIGER"
 author: "Jean Fan"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Gene Set Enrichment Analysis (GSEA) is a computational method that determines whether an a priori defined set of genes shows statistically significant, concordant differences between two biological states. The original algorithm is detailed in (Subramanian, Tamayo, et al.)[http://www.pnas.org/content/102/43/15545.full.pdf] with Java implementations available through the (Broad Institute)[http://www.broadinstitute.org/gsea/index.jsp]. 
+Gene Set Enrichment Analysis (GSEA) is a computational method that determines whether an a priori defined set of genes shows statistically significant, concordant differences between two biological states. The original algorithm is detailed in [Subramanian, Tamayo, et al.](http://www.pnas.org/content/102/43/15545.full.pdf) with Java implementations available through the [Broad Institute](http://www.broadinstitute.org/gsea/index.jsp). 
 
 The `liger` package provides a lightweight R implementation of this enrichment test on a list of values. Given a list of values, such as p-values or log-fold changes derived from differential expression analysis or other analyses comparing biological states, this package enables you to test a priori defined set of genes for enrichment to enable interpretability of highly significant or high fold-change genes. 
 
@@ -30,7 +30,7 @@ vals <- rnorm(length(universe), 0, 10)
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
 
-head(vals)
+head(vals)  # look at vals
 ```
 
 Here, `vals` can be seen as representing a list of log-fold changes derived from differential expression analysis on samples in two biological states. We want to interpret the set of differentially expressed genes with high positive fold changes using gene set enrichment analysis.
@@ -40,7 +40,8 @@ Here, `vals` can be seen as representing a list of log-fold changes derived from
 To test for enrichment of a particular gene set:
 
 ```{r, echo=TRUE}
-gs
+names(org.Hs.GO2Symbol.list)[[1]]
+gs  # look at gs
 gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE)
 ```
 
@@ -50,11 +51,22 @@ Now to test for enrichment of another gene set:
 
 ```{r, echo=TRUE}
 gs.new <- org.Hs.GO2Symbol.list[[2]]
-gs.new
+names(org.Hs.GO2Symbol.list)[[2]]
+head(gs.new)  # look at gs.new
 gsea(values=vals, geneset=gs.new)
 ```
 
 In this simulation, we created `vals` such that `gs.new` was obviously not enriched. And indeed, we see that this gene set does not exhibit significant enrichment.
+
+If we simulate a more ambiguous case:
+```{r, echo=TRUE}
+# add some noise
+vals[sample(1:length(universe), 1000)] <-  rnorm(1000, 100, 10)
+# test previously perfectly enriched gene set again
+gs <- org.Hs.GO2Symbol.list[[1]]
+gsea(values=vals, geneset=gs)
+```
+The enrichment plots and p-values are affected as expected.
 
 ## Testing multiple gene sets
 
