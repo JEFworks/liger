@@ -21,7 +21,7 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 ```
 > ptm <- proc.time()
 > bulk.gsea(vals, org.Hs.GO2Symbol.list[1:10])
-  		        p.val     q.val     sscore       edge
+                  p.val     q.val     sscore       edge
   GO:0000002 0.00009999 0.0000000  2.6139724  70.912194
   GO:0000003 0.25647435 0.4074000  0.5400972  13.170093
   GO:0000012 0.24347565 0.4074000  0.5550191   8.392397
@@ -36,7 +36,7 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 ```
 > ptm <- proc.time()
 > bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
-	            p.val   q.val     sscore       edge
+                  p.val   q.val     sscore       edge
   GO:0000002 0.00009999 0.00000  2.6054741  70.912194
   GO:0000003 0.25867413 0.41730  0.5352656  13.170093
   GO:0000012 0.24727527 0.41730  0.5545500   8.392397
@@ -46,3 +46,16 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 > proc.time() - ptm
     user  system elapsed
   11.250   0.107   5.320
+```
+
+
+# Install
+```
+require(devtools)
+devtools::install_github("JEFworks/liger")
+```
+
+# Contributing
+
+We welcome any bug reports, enhancement requests, and other contributions. To submit a bug report or enhancement request, please use the [`liger` GitHub issues tracker](https://github.com/JEFworks/liger/issues). For more substantial contributions, please fork this repo, push your changes to your fork, and submit a pull request with a good commit message.
+
