@@ -35,7 +35,7 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 
 ```
 > ptm <- proc.time()
-> bulk.iterative.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
+> iterative.bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
                   p.val   q.val     sscore       edge
   GO:0000002 0.00009999 0.00000  2.6054741  70.912194
   GO:0000003 0.25867413 0.41730  0.5352656  13.170093
