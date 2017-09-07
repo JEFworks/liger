@@ -1,5 +1,7 @@
 # Lightweight Iterative Gene set Enrichment in R (LIGER)
 
+[![DOI](https://zenodo.org/badge/43224920.svg)](https://zenodo.org/badge/latestdoi/43224920)
+
 ![](liger_logo.svg) 
 
 **[See vignette for tutorial ☞ Gene Set Enrichment Analysis with LIGER](vignettes/gsea.pdf)**
