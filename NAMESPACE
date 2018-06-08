@@ -1,3 +1,6 @@
 useDynLib(liger)
-exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
+
+export(bulk.gsea)
+export(gsea)
+export(iterative.bulk.gsea)

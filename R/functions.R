@@ -1,7 +1,7 @@
 #' Gene set enrichment analysis
 #'
 #' @param values vector of values with associated gene names; values must be named, according to names appearing in set elements
-#' @param set vector of genes in the gene set
+#' @param geneset vector of genes in the gene set
 #' @param power an exponent to control the weight of the step (default: 1)
 #' @param rank whether to use ranks as opposed to values (default: FALSE)
 #' @param weight additional weights associated with each value (default: rep(1,length(values)))
@@ -16,10 +16,13 @@
 #' data("org.Hs.GO2Symbol.list")  
 #' universe <- unique(unlist(org.Hs.GO2Symbol.list))  # get universe
 #' gs <- org.Hs.GO2Symbol.list[[1]]  # get a gene set
-#' vals <- rnorm(length(universe), 0, 10)  # fake dummy example where everything in gene set is perfectly enriched
+#' # fake dummy example where everything in gene set is perfectly enriched
+#' vals <- rnorm(length(universe), 0, 10)  
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)
 #' gsea(values=vals, geneset=gs, mc.cores=1) # test obviously enriched set
+#' 
+#' @export
 #' 
 gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2) {
 
@@ -83,52 +86,52 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
     p.v <- ifelse(p.v.p < p.v.n, p.v.p, p.v.n)  # P-value
 
     if(p.v.p < p.v.n) {
-        q.thr <- quantile(rvl$p, p = (1-quantile.threshold))
+        q.thr <- stats::quantile(rvl$p, p = (1-quantile.threshold))
     } else {
-        q.thr <- quantile(rvl$n, p = quantile.threshold)
+        q.thr <- stats::quantile(rvl$n, p = quantile.threshold)
     }
 
     if(plot) {
-        l <- layout(matrix(c(1,2,3),3, 1, byrow=T), c(1,1,1), c(1.4,0.3,0.9), FALSE)
-        par(mar = c(0.1,3.5, 0.5, 0.5), mgp = c(2,0.65,0), cex = 0.9)
+        l <- graphics::layout(matrix(c(1,2,3),3, 1, byrow=T), c(1,1,1), c(1.4,0.3,0.9), FALSE)
+        graphics::par(mar = c(0.1,3.5, 0.5, 0.5), mgp = c(2,0.65,0), cex = 0.9)
         # Plot scores along gene list rank
         plot( c(1:length(sv)), sv, type = 'l', 
               ylab = "score", xaxt="n", xlab="", main="", xaxs="i", 
               xlim=c(1,length(sv)), col="darkblue")
         # Plot the maximum deviation from zero ie. the enrichment score
-        segments(p.x, 0, p.x, sv[p.x], col=2, lty=2) 
-        segments(0, sv[p.x], p.x, sv[p.x], col=2, lty=2)
+        graphics::segments(p.x, 0, p.x, sv[p.x], col=2, lty=2) 
+        graphics::segments(0, sv[p.x], p.x, sv[p.x], col=2, lty=2)
 
         # Plot quantile thresholds
-        qv.p <- quantile(rvl$p,p=1-10^(-1*seq(1,round(log10(length(rvl$p))))))
-        qv.n <- -1*quantile(-1*rvl$n,p=1-10^(-1*seq(1,round(log10(length(rvl$n))))))
-        abline(h=c(qv.p,qv.n),lty=3,col=8)
-        abline(h=0,lty=2,col=8)
+        qv.p <- stats::quantile(rvl$p,p=1-10^(-1*seq(1,round(log10(length(rvl$p))))))
+        qv.n <- -1*stats::quantile(-1*rvl$n,p=1-10^(-1*seq(1,round(log10(length(rvl$n))))))
+        graphics::abline(h=c(qv.p,qv.n),lty=3,col=8)
+        graphics::abline(h=0,lty=2,col=8)
         
         # Plot P-value
         xpos <- "right"; if(p.x>round(length(sv)/2)) {  xpos <- "left"; }
-        legend( x = ifelse( sv[round(length(sv)/2)]>sv[p.x], paste("bottom",xpos,sep=""), paste("top",xpos,sep="")), 
+        graphics::legend( x = ifelse( sv[round(length(sv)/2)]>sv[p.x], paste("bottom",xpos,sep=""), paste("top",xpos,sep="")), 
                 bty="n",
                 legend = paste("P-value <", format(p.v, digits=3))
                 )
         
         # Plot gene set
-        par(mar = c(0.1,3.5,0.1,0.5))
+        graphics::par(mar = c(0.1,3.5,0.1,0.5))
         mset <- set
         mset[!set] <- NA
         plot( mset, xaxt="n", ylim=c(0,1), xlab="", ylab="", xaxs="i", yaxt="n", type='h', col="blue")
-        abline( v = p.x, col=2, lty=2)
-        box()
+        graphics::abline( v = p.x, col=2, lty=2)
+        graphics::box()
         
         # Plot values 
-        par(mar = c(0.5,3.5,0.1,0.5))
+        graphics::par(mar = c(0.5,3.5,0.1,0.5))
         plot( values, ylab="values", xaxs="i", type='h', xaxt="n", col="darkblue")
-        legend( x = "topright",
+        graphics::legend( x = "topright",
                 bty="n", 
                 legend=paste("edge value = ", format(values[p.x], digits=2))
                 )
-        abline( v = p.x, col=2, lty=2)
-        box()
+        graphics::abline( v = p.x, col=2, lty=2)
+        graphics::box()
     }
     
     if(return.details) {
@@ -149,10 +152,8 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 #' @param rank whether to use ranks as opposed to values (default: FALSE)
 #' @param weight additional weights associated with each value (default: rep(1,length(values)))
 #' @param n.rand number of random permutations used to assess significance (default: 1e4)
-#' @param plot whether to plot (default: TRUE)
 #' @param return.details whether to return extended details (default: FALSE)
 #' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
-#' @param random.seed random seed (default: 1)
 #' @param mc.cores number of cores for parallel processing (default: 2)
 #' @param skip.qval.estimation whether to skip q-value estimation for multiple testing (default: FALSE)
 #'
@@ -164,7 +165,9 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)  
 #' gs.list <- org.Hs.GO2Symbol.list # get gene sets
-#' bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1) 
+#' bulk.gsea(values = vals, set.list = gs.list[1:5], mc.cores = 1) 
+#' 
+#' @export
 #' 
 bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=2, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
 
@@ -231,8 +234,8 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
         s.nm <- apply(rvl$n,1,mean)
         s.pm[is.na(s.pm)] <- 0; s.nm[is.na(s.nm)] <- 0;
 
-        s.pss <- ecdf(as.numeric(rvl$p/s.pm))
-        s.nss <- ecdf(as.numeric(rvl$n/s.nm))
+        s.pss <- stats::ecdf(as.numeric(rvl$p/s.pm))
+        s.nss <- stats::ecdf(as.numeric(rvl$n/s.nm))
 
         # Scale the actual Smax
         s.svm.maxp <- svm.maxp/s.pm;
@@ -240,17 +243,17 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
 
         vo <- order(s.svm.maxp,decreasing=F)
         vr <- rank(s.svm.maxp)
-        qv <- (1-s.pss(s.svm.maxp-1e-10*max(s.svm.maxp)))/(1-ecdf(s.svm.maxp)(s.svm.maxp-1e-10))
+        qv <- (1-s.pss(s.svm.maxp-1e-10*max(s.svm.maxp)))/(1-stats::ecdf(s.svm.maxp)(s.svm.maxp-1e-10))
         q.v.p <- cummin(qv[vo])[vr];
 
         vo <- order(s.svm.maxn,decreasing=F)
         vr <- rank(s.svm.maxn)
-        qv <- (1-s.pss(s.svm.maxn-1e-10*max(s.svm.maxn)))/(1-ecdf(s.svm.maxn)(s.svm.maxn-1e-10))
+        qv <- (1-s.pss(s.svm.maxn-1e-10*max(s.svm.maxn)))/(1-stats::ecdf(s.svm.maxn)(s.svm.maxn-1e-10))
         q.v.n <- cummin(qv[vo])[vr];
 
         q.val <- ifelse(q.v.p<q.v.n,q.v.p,q.v.n)
     } else {
-        q.val <- p.adjust(p.val)
+        q.val <- stats::p.adjust(p.val)
     }
 
     # P-value, Q-value table
@@ -283,7 +286,9 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)  
 #' gs.list <- org.Hs.GO2Symbol.list # get gene sets
-#' iterative.bulk.gsea(values = vals, set.list = gs.list[1:10], mc.cores = 1) 
+#' iterative.bulk.gsea(values = vals, set.list = gs.list[1:5], mc.cores = 1) 
+#' 
+#' @export
 #' 
 iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e2,1e3,1e4), verbose=TRUE) {
   
@@ -307,7 +312,7 @@ iterative.bulk.gsea <- function(..., set.list, threshold.eval=10, n.rand=c(1e2,1
         }
     }
     
-    df$q.val <- p.adjust(df$p.val,method="BH")
+    df$q.val <- stats::p.adjust(df$p.val,method="BH")
     
     if(verbose) { cat("done\n")  }
     
