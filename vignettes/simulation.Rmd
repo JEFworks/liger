@@ -81,7 +81,7 @@ gseaSig
 # look at plots
 for(i in seq_along(gseaSig)) {
   gs <- org.Hs.GO2Symbol.list[[gseaSig[i]]]
-  gsea(values=vals, geneset=gs, mc.cores=1, plot=FALSE)
+  gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE, n.rand=500)
 }
 ```
 
@@ -89,8 +89,8 @@ Despite no individual gene being statistically significantly differentially expr
 
 ```{r, test}
 gs <- org.Hs.GO2Symbol.list[[gseaSig[1]]]
-gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE)
-gsea(values=vals, geneset=gs, rank=TRUE, mc.cores=1, plot=TRUE)
+gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE, n.rand=500)
+gsea(values=vals, geneset=gs, rank=TRUE, mc.cores=1, plot=TRUE, n.rand=500)
 ```
 
 ##  R Session Info

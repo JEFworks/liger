@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^.*\.DS_Store$
+\.tar\.gz$
+^\.Rproj\.user$
+^.travis\.yml$
+^\.github
+^vignettes/cache
+^vignettes/figures
+^cran_build_instructions.md$
+^README.md
+^images/*

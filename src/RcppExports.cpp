@@ -7,37 +7,35 @@
 using namespace Rcpp;
 
 // gseaRandCore
-Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples, int seed);
-RcppExport SEXP _liger_gseaRandCore(SEXP ssetSEXP, SEXP esoSEXP, SEXP nsamplesSEXP, SEXP seedSEXP) {
+Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples);
+RcppExport SEXP _liger_gseaRandCore(SEXP ssetSEXP, SEXP esoSEXP, SEXP nsamplesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::vec >::type sset(ssetSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type eso(esoSEXP);
     Rcpp::traits::input_parameter< int >::type nsamples(nsamplesSEXP);
-    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(gseaRandCore(sset, eso, nsamples, seed));
+    rcpp_result_gen = Rcpp::wrap(gseaRandCore(sset, eso, nsamples));
     return rcpp_result_gen;
 END_RCPP
 }
 // gseaBulkCore
-Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples, int seed);
-RcppExport SEXP _liger_gseaBulkCore(SEXP setmSEXP, SEXP esoSEXP, SEXP nsamplesSEXP, SEXP seedSEXP) {
+Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples);
+RcppExport SEXP _liger_gseaBulkCore(SEXP setmSEXP, SEXP esoSEXP, SEXP nsamplesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::mat >::type setm(setmSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type eso(esoSEXP);
     Rcpp::traits::input_parameter< int >::type nsamples(nsamplesSEXP);
-    Rcpp::traits::input_parameter< int >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(gseaBulkCore(setm, eso, nsamples, seed));
+    rcpp_result_gen = Rcpp::wrap(gseaBulkCore(setm, eso, nsamples));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_liger_gseaRandCore", (DL_FUNC) &_liger_gseaRandCore, 4},
-    {"_liger_gseaBulkCore", (DL_FUNC) &_liger_gseaBulkCore, 4},
+    {"_liger_gseaRandCore", (DL_FUNC) &_liger_gseaRandCore, 3},
+    {"_liger_gseaBulkCore", (DL_FUNC) &_liger_gseaBulkCore, 3},
     {NULL, NULL, 0}
 };
 

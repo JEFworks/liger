@@ -1,7 +1,6 @@
 *~
 R/*~
 .DS_Store
-.Rbuildignore
 .Rhistory
 .Rproj.user
 .RData
@@ -13,3 +12,4 @@ src/*.so
 .*_bak
 inst/doc
 test/*
+*.tar.gz

@@ -3,13 +3,11 @@ using namespace Rcpp;
 
 // Rcpp implementation of the GSEA resampling procedure
 // [[Rcpp::export]]
-Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples, int seed) {
+Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples) {
 
   std::vector<double> pscores(nsamples);
   std::vector<double> nscores(nsamples);
   int nelem=sset.size();
-  
-  srand(seed);
   
   for(int i=0;i<nsamples;i++) {
     // shuffle the set
@@ -46,10 +44,8 @@ Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples, int seed) {
 
 // Gsea randomization core method for multiple genesets
 // [[Rcpp::export]]
-Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples, int seed) {
+Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples) {
 
-    srand(seed);
-    
     int nelem=setm.n_cols;
     int nsets=setm.n_rows;
     

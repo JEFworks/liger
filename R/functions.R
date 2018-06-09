@@ -10,7 +10,7 @@
 #' @param return.details whether to return extended details (default: FALSE)
 #' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
 #' @param random.seed random seed (default: 1)
-#' @param mc.cores number of cores for parallel processing (default: 2)
+#' @param mc.cores number of cores for parallel processing (default: 1)
 #'
 #' @examples
 #' data("org.Hs.GO2Symbol.list")  
@@ -20,11 +20,12 @@
 #' vals <- rnorm(length(universe), 0, 10)  
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)
-#' gsea(values=vals, geneset=gs, mc.cores=1) # test obviously enriched set
+#' # test obviously enriched set, reduce n.rand for speed
+#' gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100) 
 #' 
 #' @export
 #' 
-gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=2) {
+gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=1) {
 
     # Binary vector indicating presence in the gene set
     set <- names(values) %in% geneset
@@ -68,14 +69,16 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
     # Though here, we randomly permute set labels as opposed to recomputing full phenotype recalculation
     if (mc.cores > 1) {
         rvll <- parallel::mclapply(1:mc.cores, function(i) {
-            gseaRandCore(set, eso, nsamples = ceiling(n.rand / mc.cores), seed = random.seed + i)
+            set.seed(random.seed + i)
+            gseaRandCore(set, eso, nsamples = ceiling(n.rand / mc.cores))
         }, mc.preschedule=TRUE, mc.cores = mc.cores)
         rvl <- list(
           p = unlist(lapply(rvll, function(x) x$p)),
           n = unlist(lapply(rvll, function(x) x$n))
         )
     } else {
-        rvl <- gseaRandCore(set, eso, nsamples = n.rand, seed = random.seed)
+        set.seed(random.seed)
+        rvl <- gseaRandCore(set, eso, nsamples = n.rand)
     }
     # From original paper: "Estimate nominal P value for S from ESNULL by using the
     # positive or negative portion of the distribution corresponding to
@@ -154,7 +157,7 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 #' @param n.rand number of random permutations used to assess significance (default: 1e4)
 #' @param return.details whether to return extended details (default: FALSE)
 #' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
-#' @param mc.cores number of cores for parallel processing (default: 2)
+#' @param mc.cores number of cores for parallel processing (default: 1)
 #' @param skip.qval.estimation whether to skip q-value estimation for multiple testing (default: FALSE)
 #'
 #' @examples
@@ -165,11 +168,12 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)  
 #' gs.list <- org.Hs.GO2Symbol.list # get gene sets
-#' bulk.gsea(values = vals, set.list = gs.list[1:5], mc.cores = 1) 
+#' # reduce n.rand for speed
+#' bulk.gsea(values = vals, set.list = gs.list[1:3], mc.cores = 1, n.rand=100)
 #' 
 #' @export
 #' 
-bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=2, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
+bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, mc.cores=1, quantile.threshold=min(100/n.rand,0.1), return.details=FALSE, skip.qval.estimation=FALSE) {
 
     # Determine set matrix
     setm <- do.call(rbind, parallel::mclapply(set.list, function(set) names(values) %in% set, mc.cores=mc.cores))
@@ -208,13 +212,15 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
     # Randomization
     if(mc.cores>1) {
         rvlp <- parallel::mclapply(1:mc.cores,function(i) {
-            gseaBulkCore(setm,eso,ceiling(n.rand/mc.cores),i)
+            set.seed(i)
+            gseaBulkCore(setm,eso,ceiling(n.rand/mc.cores))
         }, mc.preschedule=TRUE, mc.cores=mc.cores)
         rvl <- list(p=do.call(cbind,lapply(rvlp,function(x) x$p)),
                     n=do.call(cbind,lapply(rvlp,function(x) x$n)));
         rm(rvlp); gc();
     } else {
-        rvl <- gseaBulkCore(setm,eso,n.rand,1)
+        set.seed(1)
+        rvl <- gseaBulkCore(setm,eso,n.rand)
     }
 
     # Raw p-values
@@ -286,7 +292,8 @@ bulk.gsea <- function(values, set.list, power=1, rank=FALSE, weight=rep(1,length
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)  
 #' gs.list <- org.Hs.GO2Symbol.list # get gene sets
-#' iterative.bulk.gsea(values = vals, set.list = gs.list[1:5], mc.cores = 1) 
+#' # reduce n.rand for speed
+#' iterative.bulk.gsea(values = vals, set.list = gs.list[1:3], mc.cores = 1, n.rand=100) 
 #' 
 #' @export
 #' 

@@ -42,7 +42,7 @@ To test for enrichment of a particular gene set:
 ```{r, echo=TRUE}
 names(org.Hs.GO2Symbol.list)[[1]]
 gs  # look at gs
-gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE)
+gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE, n.rand=500)
 ```
 
 In this simulation, we created `vals` such that `gs` was obviously enriched. And indeed, we see that this gene set exhibits significant enrichment.
@@ -53,7 +53,7 @@ Now to test for enrichment of another gene set:
 gs.new <- org.Hs.GO2Symbol.list[[2]]
 names(org.Hs.GO2Symbol.list)[[2]]
 head(gs.new)  # look at gs.new
-gsea(values=vals, geneset=gs.new)
+gsea(values=vals, geneset=gs.new, mc.cores=1, n.rand=500)
 ```
 
 In this simulation, we created `vals` such that `gs.new` was obviously not enriched. And indeed, we see that this gene set does not exhibit significant enrichment.
@@ -64,7 +64,7 @@ If we simulate a more ambiguous case:
 vals[sample(1:length(universe), 1000)] <-  rnorm(1000, 100, 10)
 # test previously perfectly enriched gene set again
 gs <- org.Hs.GO2Symbol.list[[1]]
-gsea(values=vals, geneset=gs)
+gsea(values=vals, geneset=gs, mc.cores=1, n.rand=500)
 ```
 The enrichment plots and p-values are affected as expected.
 
@@ -73,12 +73,12 @@ The enrichment plots and p-values are affected as expected.
 We can also test a number of gene sets:
 
 ```{r, echo=TRUE}
-bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
+bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:5], mc.cores=1, n.rand=500)
 ```
 
 To save on computation time, we can also iterative assess significance:
 ```{r, echo=TRUE}
-iterative.bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:10])
+iterative.bulk.gsea(values=vals, set.list=org.Hs.GO2Symbol.list[1:5], mc.cores=1, n.rand=500)
 ```
 
 ##  R Session Info

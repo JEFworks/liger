@@ -7,7 +7,7 @@
 gsea(values, geneset, power = 1, rank = FALSE, weight = rep(1,
   length(values)), n.rand = 10000, plot = TRUE, return.details = FALSE,
   quantile.threshold = min(100/n.rand, 0.1), random.seed = 1,
-  mc.cores = 2)
+  mc.cores = 1)
 }
 \arguments{
 \item{values}{vector of values with associated gene names; values must be named, according to names appearing in set elements}
@@ -30,7 +30,7 @@ gsea(values, geneset, power = 1, rank = FALSE, weight = rep(1,
 
 \item{random.seed}{random seed (default: 1)}
 
-\item{mc.cores}{number of cores for parallel processing (default: 2)}
+\item{mc.cores}{number of cores for parallel processing (default: 1)}
 }
 \description{
 Gene set enrichment analysis
@@ -43,6 +43,7 @@ gs <- org.Hs.GO2Symbol.list[[1]]  # get a gene set
 vals <- rnorm(length(universe), 0, 10)  
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
-gsea(values=vals, geneset=gs, mc.cores=1) # test obviously enriched set
+# test obviously enriched set, reduce n.rand for speed
+gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100) 
 
 }

@@ -5,7 +5,7 @@
 \title{Bulk gene set enrichment analysis}
 \usage{
 bulk.gsea(values, set.list, power = 1, rank = FALSE, weight = rep(1,
-  length(values)), n.rand = 10000, mc.cores = 2,
+  length(values)), n.rand = 10000, mc.cores = 1,
   quantile.threshold = min(100/n.rand, 0.1), return.details = FALSE,
   skip.qval.estimation = FALSE)
 }
@@ -22,7 +22,7 @@ bulk.gsea(values, set.list, power = 1, rank = FALSE, weight = rep(1,
 
 \item{n.rand}{number of random permutations used to assess significance (default: 1e4)}
 
-\item{mc.cores}{number of cores for parallel processing (default: 2)}
+\item{mc.cores}{number of cores for parallel processing (default: 1)}
 
 \item{quantile.threshold}{threshold used (default: min(100/n.rand,0.1))}
 
@@ -41,6 +41,7 @@ vals <- rnorm(length(universe), 0, 10)  # simulate values
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)  
 gs.list <- org.Hs.GO2Symbol.list # get gene sets
-bulk.gsea(values = vals, set.list = gs.list[1:5], mc.cores = 1) 
+# reduce n.rand for speed
+bulk.gsea(values = vals, set.list = gs.list[1:3], mc.cores = 1, n.rand=100)
 
 }
