@@ -74,7 +74,7 @@ However, we can perform GSEA, for example, on 100 different a priori defined gen
 
 ```{r, gsea}
 # run iterative bulk gsea
-gseaVals <- iterative.bulk.gsea(values = vals, set.list = org.Hs.GO2Symbol.list[1:100])
+gseaVals <- iterative.bulk.gsea(values = vals, set.list = org.Hs.GO2Symbol.list[1:100], n.rand=500)
 # identify significant genesets
 gseaSig <- rownames(gseaVals[gseaVals$q.val < 0.05 & gseaVals$sscore > 0,])
 gseaSig
@@ -86,12 +86,6 @@ for(i in seq_along(gseaSig)) {
 ```
 
 Despite no individual gene being statistically significantly differentially expressed between our two biological states, GSEA identifies a significantly enriched geneset, `GO:0000002`, which is exactly the geneset that we simulated to show concordant differences. Therefore, by pooling genes within these a priori defined genesets, we are able to increase our statistical power to identify differences between our two biological states. 
-
-```{r, test}
-gs <- org.Hs.GO2Symbol.list[[gseaSig[1]]]
-gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE, n.rand=500)
-gsea(values=vals, geneset=gs, rank=TRUE, mc.cores=1, plot=TRUE, n.rand=500)
-```
 
 ##  R Session Info
 ```{r, echo=TRUE}
