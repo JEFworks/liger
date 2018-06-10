@@ -7,5 +7,5 @@
 ^vignettes/cache
 ^vignettes/figures
 ^cran_build_instructions.md$
-^README.md
 ^images/*
+^test/*

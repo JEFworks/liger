@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/JEFworks/liger.svg?branch=master)](https://travis-ci.org/JEFworks/liger) [![DOI](https://zenodo.org/badge/43224920.svg)](https://zenodo.org/badge/latestdoi/43224920)
 
-![](images/liger_logo.svg) 
+![](tools/liger_logo.svg) 
 
 Gene Set Enrichment Analysis (GSEA) is a computational method that determines whether an a priori defined set of genes shows statistically significant, concordant differences between two biological states. The original algorithm is detailed in [Subramanian, Tamayo, et al.](http://www.pnas.org/content/102/43/15545.full.pdf) with Java implementations available through the [Broad Institute](http://www.broadinstitute.org/gsea/index.jsp).
 
@@ -19,8 +19,8 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 > gsea(values=vals, geneset=gs, mc.cores=1, plot=TRUE)
 ```
 
-![](images/gsea_tp.png)
-![](images/gsea_tn.png)
+![](tools/gsea_tp.png)
+![](tools/gsea_tn.png)
 
 ## Testing multiple gene sets
 

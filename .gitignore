@@ -13,3 +13,4 @@ src/*.so
 inst/doc
 test/*
 *.tar.gz
+*Rcheck*
