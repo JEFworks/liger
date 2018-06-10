@@ -1,6 +1,11 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+// wrapper around R's RNG such that we get a uniform distribution over
+// [0,n) as required by the STL algorithm
+// From Dirk Eddelbuettel (http://gallery.rcpp.org/articles/stl-random-shuffle/)
+inline int randWrapper(const int n) { return floor(unif_rand()*n); }
+
 // Rcpp implementation of the GSEA resampling procedure
 // [[Rcpp::export]]
 Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples) {
@@ -11,7 +16,7 @@ Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples) {
   
   for(int i=0;i<nsamples;i++) {
     // shuffle the set
-    std::random_shuffle(sset.begin(),sset.end());
+    std::random_shuffle(sset.begin(),sset.end(), randWrapper);
     // determine normalizing factors
     double insum=0; double outsum=0;
     for(int j=0;j<nelem;j++) {
@@ -63,7 +68,7 @@ Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples) {
     
     for(int i=0;i<nsamples;i++) {
       // shuffle the order
-      std::random_shuffle(colord.begin(),colord.end());
+      std::random_shuffle(colord.begin(),colord.end(), randWrapper);
       
       innv.zeros(); outnv.zeros();
       
