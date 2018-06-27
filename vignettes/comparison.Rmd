@@ -1,0 +1,127 @@
+---
+title: "Comparison of `liger` with `fgsea`"
+author: "Jean Fan"
+date: "June 26, 2018"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{comparison}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+`liger` is just one of many methods for gene set enrichment analysis. `fgsea` is another similar method that uses a faster cumulative statistic calculation on preranked values. Here, we compare `liger` to `fgsea`.
+
+# Comparison
+
+We will use the example data and example gene sets that come with the `fgsea` package. Note that `exampleRanks` is a numeric vector where each value is fold-change or differential expression z-score between two biological conditions (some type of metric used for ranking genes) and `examplePathways` is a list of lists where each entry is a gene name corresponding to `exampleRanks`.
+
+```{r, message=F, warning=F}
+# example pathways from fgsea
+library(fgsea)
+data(examplePathways)
+data(exampleRanks)
+
+head(examplePathways)
+head(exampleRanks)
+
+barplot(sort(exampleRanks, decreasing=TRUE), names.arg='')
+```
+
+We will test all gene sets of a particular size.
+
+```{r}
+# filter pathways to certain size
+size <- lapply(examplePathways, length)
+vi <- size > 15 & size < 500
+table(vi)
+examplePathways <- examplePathways[vi]
+```
+
+Now, we run both methods. 
+
+```{r}
+# run fgsea
+start_time <- Sys.time()
+fgseaRes <- fgsea(pathways = examplePathways, 
+                  stats = exampleRanks,
+                  nperm=10000)
+end_time <- Sys.time()
+print(end_time - start_time)
+
+# run liger
+library(liger)
+start_time <- Sys.time()
+ligerRes <- iterative.bulk.gsea(exampleRanks, 
+                    set.list=examplePathways,
+                    n.rand = c(100, 1000, 10000)
+                    )
+end_time <- Sys.time()
+print(end_time - start_time)
+```
+
+We can plot the -log10(corrected p-values) for both approaches and assess their correspondence.
+
+```{r}
+# compare 
+fgseaP <- fgseaRes$padj; names(fgseaP) <- fgseaRes$pathway
+fgseaP <- fgseaP[names(examplePathways)]
+ligerP <- ligerRes$q.val; names(ligerP) <- rownames(ligerRes)
+ligerP <- ligerP[names(examplePathways)]
+
+# plot
+par(mfrow=c(1,1), mar=rep(5,4))
+plot(-log10(fgseaP), -log10(ligerP))
+abline(v = -log10(0.05), col='red')
+abline(h = -log10(0.05), col='red')
+```
+
+Each dot here is a gene set. The x position is the -log10(p-value) of the gene set from `fgsea` while the y-axis is from `liger`. While there does appear to be a good general correspondence (strong diagonal), notice a set of gene sets that are very significant in `liger` but not in `fgsea`. Let's take a closer look at what are these gene sets.
+
+```{r}
+# maximal difference (most inconsistent) between methods
+diff <- abs(-log10(fgseaP) - -log10(ligerP))
+diff <- sort(diff, decreasing=TRUE)
+# pick most inconsistent
+gs <- names(diff)[1]
+print(fgseaP[gs])
+print(ligerP[gs])
+# fgsea
+plotEnrichment(examplePathways[[gs]], exampleRanks) 
+# liger
+gsea(exampleRanks, examplePathways[[gs]])
+```
+
+What we can see is that `liger` detected a significant lack of genes in this gene set among the most highly ranked genes as noted by the positive `edge` but negative `sscore`. This particular type of enrichment testing may be important if we want to make claims about certain gene sets never being highly differentially expressed (depleted in representation) but are not necessarily down-regulated. 
+
+As `fgsea` does not detect such patterns, to make our comparison between the two methods more appropriate, we will restrict to gene sets for which `liger` detects a consistent `sscore` and `edge` (ie. both positive suggesting upregulation or both negative suggesting downregulation). 
+
+```{r}
+# make comparable
+vi <- ligerRes$sscore * ligerRes$edge > 0
+consistentGs <- rownames(ligerRes)[vi]
+par(mfrow=c(1,1), mar=rep(5,4))
+plot(-log10(fgseaP[consistentGs]), -log10(ligerP[consistentGs]))
+abline(v = -log10(0.05), col='red')
+abline(h = -log10(0.05), col='red')
+```
+
+Now, results are highly consistent between the two approaches. 
+
+```{r}
+# pick a significant gene set
+gs <- names(which(fgseaP[consistentGs]==min(fgseaP[consistentGs])))[1]
+print(fgseaP[gs])
+print(ligerP[gs])
+# fgsea
+plotEnrichment(examplePathways[[gs]], exampleRanks) 
+# liger
+gsea(exampleRanks, examplePathways[[gs]])
+```
+
+# Conclusion
+
+In conclusion, `fgsea` provides a very fast test for gene sets where ranked gene values are appropriate. Both `fgsea` and `liger` offer very comparable results when looking for significantly upregulated or downregulated gene sets. 
+
+Ultimately, the appropriateness of gene set enrichment analysis approaches will depend on your question of interest. If you are only looking to test simply for over-representation of a set of genes, perhaps a hypergeometric test will be sufficient. If you care about the magnitude of the gene expression fold-change used in your gene ranking, a purely rank-based approach may be less optimal. If you are only interested in consistent upregulation and downregulation, significant results pointing to a depletion in representation among highly ranked genes may not be useful and should be ignored. 
+
+What ever gene set enrichment analysis you choose and whatever hypotheses they may help you generate, given the multitude of issues associated with gene sets, their accuracy, particularly as they pertain to your biological system of study, additional biological validation is always encouraged. 
