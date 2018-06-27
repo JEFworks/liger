@@ -44,7 +44,8 @@ Now, we run both methods.
 start_time <- Sys.time()
 fgseaRes <- fgsea(pathways = examplePathways, 
                   stats = exampleRanks,
-                  nperm=10000)
+                  nperm=10000,
+                  BPPARAM=BiocParallel::MulticoreParam(workers = 1))
 end_time <- Sys.time()
 print(end_time - start_time)
 
