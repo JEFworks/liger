@@ -11,6 +11,7 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 # Tutorials
 - **[Gene Set Enrichment Analysis with LIGER](vignettes/gsea.pdf)**
 - **[Highlighting the power of gene set enrichment analysis using simulation](vignettes/simulation.pdf)**
+- **[Interpreting Enrichment Scores and Edge Values](vignettes/interpreting.pdf)**
 - **[Comparison with alternative gene set enrichment analysis approaches](vignettes/comparison.pdf)**
 
 # Sample plots
