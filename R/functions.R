@@ -7,6 +7,7 @@
 #' @param weight additional weights associated with each value (default: rep(1,length(values)))
 #' @param n.rand number of random permutations used to assess significance (default: 1e4)
 #' @param plot whether to plot (default: TRUE)
+#' @param main plot title (default: "")
 #' @param return.details whether to return extended details (default: FALSE)
 #' @param quantile.threshold threshold used (default: min(100/n.rand,0.1))
 #' @param random.seed random seed (default: 1)
@@ -21,11 +22,11 @@
 #' names(vals) <- universe
 #' vals[gs] <- rnorm(length(gs), 100, 10)
 #' # test obviously enriched set, reduce n.rand for speed
-#' gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100) 
+#' gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100, main="GO:Random") 
 #' 
 #' @export
 #' 
-gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=1) {
+gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(values)), n.rand=1e4, plot=TRUE, main="", return.details=FALSE, quantile.threshold=min(100/n.rand,0.1), random.seed=1, mc.cores=1) {
 
     # Binary vector indicating presence in the gene set
     set <- names(values) %in% geneset
@@ -96,10 +97,10 @@ gsea <- function(values, geneset, power=1, rank=FALSE, weight=rep(1,length(value
 
     if(plot) {
         l <- graphics::layout(matrix(c(1,2,3),3, 1, byrow=T), c(1,1,1), c(1.4,0.3,0.9), FALSE)
-        graphics::par(mar = c(0.1,3.5, 0.5, 0.5), mgp = c(2,0.65,0), cex = 0.9)
+        graphics::par(mar = c(0.1,3.5, 1.5, 0.5), mgp = c(2,0.65,0), cex = 0.9)
         # Plot scores along gene list rank
         plot( c(1:length(sv)), sv, type = 'l', 
-              ylab = "score", xaxt="n", xlab="", main="", xaxs="i", 
+              ylab = "score", xaxt="n", xlab="", main=main, xaxs="i", 
               xlim=c(1,length(sv)), col="darkblue")
         # Plot the maximum deviation from zero ie. the enrichment score
         graphics::segments(p.x, 0, p.x, sv[p.x], col=2, lty=2) 

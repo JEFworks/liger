@@ -5,9 +5,9 @@
 \title{Gene set enrichment analysis}
 \usage{
 gsea(values, geneset, power = 1, rank = FALSE, weight = rep(1,
-  length(values)), n.rand = 10000, plot = TRUE, return.details = FALSE,
-  quantile.threshold = min(100/n.rand, 0.1), random.seed = 1,
-  mc.cores = 1)
+  length(values)), n.rand = 10000, plot = TRUE, main = "",
+  return.details = FALSE, quantile.threshold = min(100/n.rand, 0.1),
+  random.seed = 1, mc.cores = 1)
 }
 \arguments{
 \item{values}{vector of values with associated gene names; values must be named, according to names appearing in set elements}
@@ -23,6 +23,8 @@ gsea(values, geneset, power = 1, rank = FALSE, weight = rep(1,
 \item{n.rand}{number of random permutations used to assess significance (default: 1e4)}
 
 \item{plot}{whether to plot (default: TRUE)}
+
+\item{main}{plot title (default: "")}
 
 \item{return.details}{whether to return extended details (default: FALSE)}
 
@@ -44,6 +46,6 @@ vals <- rnorm(length(universe), 0, 10)
 names(vals) <- universe
 vals[gs] <- rnorm(length(gs), 100, 10)
 # test obviously enriched set, reduce n.rand for speed
-gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100) 
+gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100, main="GO:Random") 
 
 }
