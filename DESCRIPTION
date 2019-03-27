@@ -9,7 +9,10 @@ LazyData: TRUE
 Depends: R (>= 2.10)
 Imports: graphics, stats, Rcpp, matrixStats, parallel
 LinkingTo: Rcpp, RcppArmadillo
-Suggests: knitr, rmarkdown
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
 URL: https://github.com/JEFworks/liger
 BugReports: https://github.com/JEFworks/liger/issues
