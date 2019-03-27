@@ -7,9 +7,13 @@ test_that(context("Test GSEA"), {
   names(vals) <- universe
   vals[gs] <- rnorm(length(gs), 100, 10)  
   gs.list <- org.Hs.GO2Symbol.list # get gene sets
+  
   # test obviously enriched set, reduce n.rand for speed
-  pv <- gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100, plot=FALSE) 
-  expect_equal(pv < 0.05, TRUE)
+  pv1 <- gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100) 
+  expect_equal(pv1 < 0.05, TRUE)
+  
+  pv2 <- gsea(values=vals, geneset=gs, mc.cores=1, n.rand=100, rank=TRUE) 
+  expect_equal(pv2 < 0.05, TRUE)
 })
 
 test_that(context("Test speed"), {
