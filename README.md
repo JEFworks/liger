@@ -1,6 +1,9 @@
 # Lightweight Iterative Gene set Enrichment in R (LIGER)
 
-[![Build Status](https://travis-ci.org/JEFworks/liger.svg?branch=master)](https://travis-ci.org/JEFworks/liger) [![codecov](https://codecov.io/gh/JEFworks/liger/branch/master/graph/badge.svg)](https://codecov.io/gh/JEFworks/liger) [![DOI](https://zenodo.org/badge/43224920.svg)](https://zenodo.org/badge/latestdoi/43224920)
+[![Build Status](https://travis-ci.org/JEFworks/liger.svg?branch=master)](https://travis-ci.org/JEFworks/liger) 
+[![CRAN](https://www.r-pkg.org/badges/version/liger)](https://CRAN.R-project.org/package=liger)
+[![codecov](https://codecov.io/gh/JEFworks/liger/branch/master/graph/badge.svg)](https://codecov.io/gh/JEFworks/liger) 
+[![DOI](https://zenodo.org/badge/43224920.svg)](https://zenodo.org/badge/latestdoi/43224920)
 
 ![](tools/liger_logo.svg) 
 
@@ -59,6 +62,10 @@ The `liger` package provides a lightweight R implementation of this enrichment t
 
 # Install
 ```
+# The easiest way to get liger is to install it from CRAN:
+install.packages("liger")
+
+# Or get the latest development version from GitHub:
 require(devtools)
 devtools::install_github("JEFworks/liger")
 ```
