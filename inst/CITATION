@@ -1,0 +1,12 @@
+citHeader("To cite liger in publications, please use:")
+
+citEntry(entry = "book",
+  author = "Jean Fan",
+  title = "Differential Pathway Analysis",
+  booktitle = "Computational Methods for Single-Cell Data Analysis",
+  editor = "GC Yuan",
+  publisher = "Springer",
+  year = "2019",
+  isbn = "978-1-4939-9057-3",
+  textVersion = "Fan J. Differential Pathway Analysis. Computational Methods for Single-Cell Data Analysis. Springer. 2019. ISBN 978-1-4939-9057-3."
+)
