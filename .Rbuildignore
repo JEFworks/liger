@@ -9,3 +9,4 @@
 ^cran_build_instructions.md$
 ^images/*
 ^test/*
+^vignettes/comparison*

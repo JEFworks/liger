@@ -1,0 +1,69 @@
+---
+title: "Exploring Permutation P-value"
+author: "Jean Fan"
+date: "7/15/2020"
+output: rmarkdown::pdf_document
+vignette: >
+  %\VignetteIndexEntry{pvals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this tutorial, we will explore what it means to use derive p-values by permutation. `liger` and other many gene set enrichment analysis procedures derive p-value through permutation. So it is important to understand what p-values mean when they are derived from 100, 1000, 10,000 or more permutations. 
+
+To demonstrate this, we will first simulate a significantly enriched gene set. 
+
+```{r, echo=TRUE}
+library(liger)
+# load gene set
+data("org.Hs.GO2Symbol.list")  
+# get universe
+universe <- unique(unlist(org.Hs.GO2Symbol.list))
+# get a gene set
+gs <- org.Hs.GO2Symbol.list[[1]]
+# fake dummy example where everything in gene set is perfectly enriched
+vals <- rnorm(length(universe), 0, 10)
+names(vals) <- universe
+set.seed(0)
+vals[gs] <- rnorm(length(gs), 10, 10)
+```
+
+We will test this gene set of enrichment with only 10 permutations to generate the null distribution.
+
+```{r test1}
+set.seed(0)
+gsea(values=vals, geneset=gs, plot=TRUE, n.rand=10)
+```
+
+Note that the returned p-value is 0.1. This is larger than our typicaly significance threshold of 0.05, so we may be led to believe that this gene set is not significant. But wait! What this really means is that the true p-value is < 0.1. But due to using only 10 permutations, 1/10 or 0.1 is the most precisely we can estimate the p-value.
+
+So let's try 1000 permutations then.
+
+```{r test2}
+set.seed(0)
+gsea(values=vals, geneset=gs, plot=TRUE, n.rand=1e3)
+```
+
+Now the returned p-value is 0.001. But again, what this really means is that the true p-value is < 0.001 but due to using only 1000 permutations, 1/1000 or 0.001 is the most precisely we can estimate the p-value.
+
+So let's try 1e5 permutations then.
+
+```{r test3}
+set.seed(0)
+gsea(values=vals, geneset=gs, plot=TRUE, n.rand=1e5)
+```
+
+As you can see, the more permutations we use, the more precisely we can estimate how 'strange' is our observed enrichment score compared to what we might expect to see by chance. We can always derive a permutation p-value but the precision of our p-value will be limited by the number of permutations we use. 
+
+## Try it out for yourself
+- What p-value would you expect returned if we use only 20 permutations?
+- What happens if we use 1e6 permutations?
+
+##  R Session Info
+```{r, echo=TRUE}
+sessionInfo()
+````
