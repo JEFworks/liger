@@ -10,3 +10,4 @@
 ^images/*
 ^test/*
 ^vignettes/comparison*
+^\.github$
