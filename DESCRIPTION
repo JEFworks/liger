@@ -9,15 +9,15 @@ LazyData: TRUE
 Depends: R (>= 2.10)
 Imports: graphics, stats, Rcpp, matrixStats, parallel
 LinkingTo: Rcpp, RcppArmadillo
-Suggests: 
-    knitr,
-    rmarkdown,
-    testthat
+Suggests: knitr, rmarkdown, testthat
 VignetteBuilder: knitr
 URL: https://github.com/JEFworks/liger
 BugReports: https://github.com/JEFworks/liger/issues
-RoxygenNote: 7.1.0
+RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Author: Jean Fan [aut, cre] (0000-0002-0212-5451),
+Packaged: 2020-07-16 00:42:20 UTC; Jean
+Author: Jean Fan [aut, cre] (<https://orcid.org/0000-0002-0212-5451>),
   Peter Kharchenko [aut]
 Maintainer: Jean Fan <jeanfan@jhu.edu>
+Repository: CRAN
+Date/Publication: 2020-07-16 15:10:07 UTC

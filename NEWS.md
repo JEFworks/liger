@@ -1,3 +1,6 @@
+# liger v1.3
+* Change random_shuffle to shuffle 
+
 # liger v1.1
 * Add main option to gsea plotting for title
 

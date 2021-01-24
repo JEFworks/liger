@@ -12,10 +12,10 @@ Gene Set Enrichment Analysis (GSEA) is a computational method that determines wh
 The `liger` package provides a lightweight R implementation of this enrichment test on a list of values. Given a list of values, such as p-values or log-fold changes derived from differential expression analysis or other analyses comparing biological states, this package enables you to test a priori defined set of genes for enrichment to enable interpretability of highly significant or high fold-change genes.
 
 # Tutorials
-- **[Gene Set Enrichment Analysis with LIGER](vignettes/gsea.pdf)**
-- **[Highlighting the power of gene set enrichment analysis using simulation](vignettes/simulation.pdf)**
-- **[Interpreting Enrichment Scores and Edge Values](vignettes/interpreting.pdf)**
-- **[Comparison with alternative gene set enrichment analysis approaches](vignettes/comparison.pdf)**
+-- **[Gene Set Enrichment Analysis with LIGER](vignettes/gsea.pdf)**
+-- **[Highlighting the power of gene set enrichment analysis using simulation](vignettes/simulation.pdf)**
+-- **[Interpreting Enrichment Scores and Edge Values](vignettes/interpreting.pdf)**
+-- **[Comparison with alternative gene set enrichment analysis approaches](vignettes/comparison.pdf)**
 
 # Sample plots
 
