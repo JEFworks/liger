@@ -1,10 +1,10 @@
 ---
-title: "Exploring Permutation P-value"
+title: "Exploring Permutation P-values"
 author: "Jean Fan"
 date: "7/15/2020"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{pvals}
+  %\VignetteIndexEntry{Exploring Permutation P-values}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -4,7 +4,7 @@ author: "Jean Fan"
 date: "June 26, 2018"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{comparison}
+  %\VignetteIndexEntry{Comparison of liger with fgsea}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

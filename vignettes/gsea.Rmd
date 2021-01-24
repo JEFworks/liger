@@ -4,7 +4,7 @@ author: "Jean Fan"
 date: "September 27, 2015"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{example}
+  %\VignetteIndexEntry{Gene Set Enrichment Analysis with LIGER}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

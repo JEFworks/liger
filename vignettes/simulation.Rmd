@@ -4,7 +4,7 @@ author: "Jean Fan"
 date: "December 23, 2015"
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteIndexEntry{simulation}
+  %\VignetteIndexEntry{Highlighting the Power of Gene Set Enrichment Analysis using Simulation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
