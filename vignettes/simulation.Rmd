@@ -2,7 +2,7 @@
 title: "Highlighting the Power of Gene Set Enrichment Analysis using Simulation"
 author: "Jean Fan"
 date: "December 23, 2015"
-output: rmarkdown::pdf_document
+output: rmarkdown::html_document
 vignette: >
   %\VignetteIndexEntry{Highlighting the Power of Gene Set Enrichment Analysis using Simulation}
   %\VignetteEngine{knitr::rmarkdown}

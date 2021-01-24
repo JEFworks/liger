@@ -2,7 +2,7 @@
 title: "Exploring Permutation P-values"
 author: "Jean Fan"
 date: "7/15/2020"
-output: rmarkdown::pdf_document
+output: rmarkdown::html_document
 vignette: >
   %\VignetteIndexEntry{Exploring Permutation P-values}
   %\VignetteEngine{knitr::rmarkdown}
