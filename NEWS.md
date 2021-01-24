@@ -1,3 +1,7 @@
+# liger v2.0
+* Remove random_shuffle and shuffle altogther
+* Change to sample
+
 # liger v1.3
 * Change random_shuffle to shuffle 
 

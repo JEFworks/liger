@@ -1,5 +1,5 @@
 #include <RcppArmadillo.h>
-#include <random>
+#include <RcppArmadilloExtensions/sample.h>
 using namespace Rcpp;
 
 // wrapper around R's RNG such that we get a uniform distribution over
@@ -8,7 +8,8 @@ using namespace Rcpp;
 // inline int randWrapper(const int n) { return floor(unif_rand()*n); }
 
 // Update 2021: C++14 no longer supports random_shuffle
-// https://meetingcpp.com/blog/items/stdrandom_shuffle-is-deprecated.html
+// change to sample
+// https://stackoverflow.com/questions/43353109/rcpparmadillo-sample-on-armadillo-vector-classes
 
 // Rcpp implementation of the GSEA resampling procedure
 // [[Rcpp::export]]
@@ -21,9 +22,7 @@ Rcpp::List gseaRandCore(arma::vec sset, arma::vec eso, int nsamples) {
   for(int i=0;i<nsamples;i++) {
     // shuffle the set
     // std::random_shuffle(sset.begin(),sset.end(), randWrapper); (deprecated)
-    std::random_device rng;
-    std::mt19937 urng(rng());
-    std::shuffle(sset.begin(),sset.end(), urng);
+    sset = Rcpp::RcppArmadillo::sample(sset, sset.size(), false);
     // determine normalizing factors
     double insum=0; double outsum=0;
     for(int j=0;j<nelem;j++) {
@@ -76,10 +75,7 @@ Rcpp::List gseaBulkCore(arma::mat setm, arma::vec eso, int nsamples) {
     for(int i=0;i<nsamples;i++) {
       // shuffle the order
       // std::random_shuffle(colord.begin(),colord.end(), randWrapper); (deprecated)
-      std::random_device rng;
-      std::mt19937 urng(rng());
-      std::shuffle(colord.begin(),colord.end(), urng); 
-      
+      colord = Rcpp::RcppArmadillo::sample(colord, colord.size(), false);
       innv.zeros(); outnv.zeros();
       
       // determine normalizing factors
