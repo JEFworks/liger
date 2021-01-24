@@ -4,10 +4,20 @@
 \alias{gsea}
 \title{Gene set enrichment analysis}
 \usage{
-gsea(values, geneset, power = 1, rank = FALSE, weight = rep(1,
-  length(values)), n.rand = 10000, plot = TRUE, main = "",
-  return.details = FALSE, quantile.threshold = min(100/n.rand, 0.1),
-  random.seed = 1, mc.cores = 1)
+gsea(
+  values,
+  geneset,
+  power = 1,
+  rank = FALSE,
+  weight = rep(1, length(values)),
+  n.rand = 10000,
+  plot = TRUE,
+  main = "",
+  return.details = FALSE,
+  quantile.threshold = min(100/n.rand, 0.1),
+  random.seed = 1,
+  mc.cores = 1
+)
 }
 \arguments{
 \item{values}{vector of values with associated gene names; values must be named, according to names appearing in set elements}

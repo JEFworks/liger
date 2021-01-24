@@ -3,7 +3,6 @@
 \docType{package}
 \name{liger}
 \alias{liger}
-\alias{liger-package}
 \title{liger}
 \description{
 This package contains permutation-based gene set enrichment functionalities in R

@@ -4,8 +4,13 @@
 \alias{iterative.bulk.gsea}
 \title{Iterative bulk gene set enrichment analysis}
 \usage{
-iterative.bulk.gsea(..., set.list, threshold.eval = 10, n.rand = c(100,
-  1000, 10000), verbose = TRUE)
+iterative.bulk.gsea(
+  ...,
+  set.list,
+  threshold.eval = 10,
+  n.rand = c(100, 1000, 10000),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{...}{arguments to be passed to \code{\link{bulk.gsea}}}

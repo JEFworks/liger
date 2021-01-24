@@ -4,10 +4,18 @@
 \alias{bulk.gsea}
 \title{Bulk gene set enrichment analysis}
 \usage{
-bulk.gsea(values, set.list, power = 1, rank = FALSE, weight = rep(1,
-  length(values)), n.rand = 10000, mc.cores = 1,
-  quantile.threshold = min(100/n.rand, 0.1), return.details = FALSE,
-  skip.qval.estimation = FALSE)
+bulk.gsea(
+  values,
+  set.list,
+  power = 1,
+  rank = FALSE,
+  weight = rep(1, length(values)),
+  n.rand = 10000,
+  mc.cores = 1,
+  quantile.threshold = min(100/n.rand, 0.1),
+  return.details = FALSE,
+  skip.qval.estimation = FALSE
+)
 }
 \arguments{
 \item{values}{vector of values with associated gene names; values must be named, according to names appearing in set.list elements}
