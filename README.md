@@ -1,3 +1,6 @@
+**Note**: This package is no longer maintained as I no longer actively use it myself. 
+For gene set enrichment analysis in R, please check out instead [`fgsea`](https://bioconductor.org/packages/release/bioc/html/fgsea.html) or [`clusterProfiler`](https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html). I hope this repo and its vignettes may still be useful as resource for understanding such gene set enrichment analysis. 
+
 # Lightweight Iterative Gene set Enrichment in R (LIGER)
 
 ![R-CMD-check](https://github.com/JEFworks/liger/workflows/R-CMD-check/badge.svg)
